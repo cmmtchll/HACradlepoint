@@ -1,0 +1,20 @@
+name: Feature request
+description: Propose a verified read-only router capability.
+body:
+  - type: textarea
+    id: use-case
+    attributes:
+      label: User need
+      description: Describe the intended use and why existing entities are insufficient.
+    validations:
+      required: true
+  - type: textarea
+    id: contract
+    attributes:
+      label: Vendor documentation and compatibility evidence
+      description: Link documented endpoints and units; no raw or sensitive API dumps.
+  - type: textarea
+    id: scope
+    attributes:
+      label: Security, quality-scale, and lifecycle considerations
+      description: Include availability, identity, privacy, and error handling impacts.

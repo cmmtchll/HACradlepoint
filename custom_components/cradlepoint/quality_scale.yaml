@@ -1,0 +1,163 @@
+rules:
+  action-setup:
+    status: exempt
+    comment: This initial read-only integration registers no service actions.
+  appropriate-polling:
+    status: todo
+    comment: Confirm polling interval and coordinator behavior against source and tests.
+  brands:
+    status: todo
+    comment: Submit and verify the integration assets in the Home Assistant brands repository.
+  common-modules:
+    status: todo
+    comment: Verify shared constants and coordinator responsibilities against source and tests.
+  config-flow:
+    status: todo
+    comment: Verify the complete user configuration flow and validation tests.
+  config-flow-test-coverage:
+    status: todo
+    comment: Measure full configuration flow branch coverage before marking this complete.
+  dependency-transparency:
+    status: todo
+    comment: Confirm dependency declarations and documented local API behavior.
+  docs-actions:
+    status: exempt
+    comment: This initial read-only integration exposes no service actions to document.
+  docs-conditions:
+    status: exempt
+    comment: This integration provides no custom automation conditions.
+  docs-high-level-description:
+    status: done
+    comment: README.md describes the read-only router integration and its scope; quality_scale.rst explains this self-assessment.
+  docs-installation-instructions:
+    status: done
+    comment: docs/setup.rst explains installation and initial configuration.
+  docs-removal-instructions:
+    status: done
+    comment: docs/setup.rst describes removing the integration and its configuration entry.
+  docs-triggers:
+    status: exempt
+    comment: This integration provides no custom automation triggers.
+  entity-event-setup:
+    status: todo
+    comment: Verify entity subscription registration and listener cleanup in source and tests.
+  entity-unique-id:
+    status: todo
+    comment: Verify stable serial-based entity identifiers in source and tests.
+  has-entity-name:
+    status: todo
+    comment: Verify device-based entity naming and translated entity names.
+  runtime-data:
+    status: todo
+    comment: Verify typed configuration entry runtime data in source and tests.
+  test-before-configure:
+    status: todo
+    comment: Verify live connection validation before saving configuration.
+  test-before-setup:
+    status: todo
+    comment: Verify initial coordinator refresh before forwarding platform setup.
+  unique-config-entry:
+    status: todo
+    comment: Verify serial identity duplicate prevention in source and tests.
+  action-exceptions:
+    status: exempt
+    comment: This initial read-only integration has no service actions that raise exceptions.
+  config-entry-unloading:
+    status: todo
+    comment: Verify successful unload and cleanup behavior with lifecycle tests.
+  docs-configuration-parameters:
+    status: done
+    comment: docs/setup.rst explains configuration parameters and their usage.
+  docs-installation-parameters:
+    status: done
+    comment: docs/setup.rst documents required router credentials and installation parameters.
+  entity-unavailable:
+    status: todo
+    comment: Verify coordinator failure makes entities unavailable and successful refresh recovers them.
+  integration-owner:
+    status: todo
+    comment: Verify a responsible integration owner is declared in the manifest.
+  log-when-unavailable:
+    status: todo
+    comment: Verify coordinator transition logging avoids repeated failure messages.
+  parallel-updates:
+    status: todo
+    comment: Verify the platform explicitly declares safe parallel update behavior.
+  reauthentication-flow:
+    status: todo
+    comment: Verify authentication failure and successful credential replacement with flow tests.
+  test-coverage:
+    status: todo
+    comment: Measure integration coverage and all required behaviors before declaring this met.
+  devices:
+    status: todo
+    comment: Verify router device registry metadata and stable identifiers in source and tests.
+  diagnostics:
+    status: todo
+    comment: Verify sanitized diagnostics and credential redaction with dedicated tests.
+  discovery:
+    status: todo
+    comment: Automatic router discovery is not implemented in this initial release.
+  discovery-update-info:
+    status: todo
+    comment: Discovery-driven connection updates are not implemented in this initial release.
+  docs-data-update:
+    status: done
+    comment: docs/features.rst documents polling and the local data update behavior.
+  docs-examples:
+    status: done
+    comment: docs/features.rst gives practical examples using the provided router sensors.
+  docs-known-limitations:
+    status: done
+    comment: docs/features.rst and docs/security.rst explain supported scope and limitations.
+  docs-supported-devices:
+    status: done
+    comment: docs/features.rst describes router compatibility and verification limits.
+  docs-supported-functions:
+    status: done
+    comment: docs/features.rst lists supported read-only router functions.
+  docs-troubleshooting:
+    status: done
+    comment: docs/troubleshooting.rst explains connection and authentication troubleshooting; CONTRIBUTING.rst explains reporting reproducible issues.
+  docs-use-cases:
+    status: done
+    comment: docs/features.rst describes practical monitoring use cases.
+  dynamic-devices:
+    status: todo
+    comment: Verify device lifecycle behavior and assess dynamic device requirements.
+  entity-category:
+    status: todo
+    comment: Verify diagnostic entity categories against source and tests.
+  entity-device-class:
+    status: todo
+    comment: Verify device classes are assigned where semantically appropriate.
+  entity-disabled-by-default:
+    status: todo
+    comment: Verify less-useful diagnostic entities have appropriate default enablement.
+  entity-translations:
+    status: todo
+    comment: Verify entity translation keys and translated names in source and tests.
+  exception-translations:
+    status: todo
+    comment: Verify user-facing exceptions use supported translated error keys.
+  icon-translations:
+    status: todo
+    comment: Verify icon translation keys and platform icon definitions.
+  reconfiguration-flow:
+    status: todo
+    comment: Verify reconfiguration updates connection details without replacing device identity.
+  repair-issues:
+    status: todo
+    comment: Repair issue creation and resolution are not implemented in this initial release.
+  stale-devices:
+    status: todo
+    comment: Verify stale device handling and assess registry removal behavior.
+  async-dependency:
+    status: todo
+    comment: Verify all router communication uses asynchronous APIs without blocking operations.
+  inject-websession:
+    status: todo
+    comment: Verify the shared Home Assistant web session is injected into the API client.
+  strict-typing:
+    status: todo
+    comment: Verify strict typing passes for integration code and the audit script.

@@ -1,0 +1,52 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to a CradlePoint router",
+        "description": "Enter the router's HTTPS origin and local router credentials. A valid, trusted TLS certificate is required.",
+        "data": {
+          "origin": "HTTPS origin",
+          "username": "Username",
+          "password": "Password"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Reauthenticate with the router",
+        "description": "Enter credentials for the same router. Its serial number must match the existing configuration.",
+        "data": {
+          "origin": "HTTPS origin",
+          "username": "Username",
+          "password": "Password"
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigure router connection",
+        "description": "Update the HTTPS origin or credentials for the same router.",
+        "data": {
+          "origin": "HTTPS origin",
+          "username": "Username",
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "invalid_origin": "Enter only an HTTPS origin, without credentials, a path, query, or fragment.",
+      "invalid_auth": "The router rejected the credentials.",
+      "cannot_connect": "Unable to connect securely to the router. Check connectivity and its trusted TLS certificate.",
+      "invalid_response": "The router did not return supported product information.",
+      "wrong_device": "This router's serial number does not match the configured router."
+    },
+    "abort": {
+      "already_configured": "This router is already configured.",
+      "reauth_successful": "Authentication was updated successfully.",
+      "reconfigure_successful": "The router connection was updated successfully."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "product_name": {
+        "name": "Product name"
+      }
+    }
+  }
+}
