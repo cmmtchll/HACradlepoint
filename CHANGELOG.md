@@ -1,8 +1,6 @@
-Changelog
-=========
+# Changelog
 
-0.1.0 — unreleased
-------------------
+## 0.1.0 — unreleased
 
 * Initial experimental, read-only local NCOS product-name integration.
 * UI setup, serial identity, reauthentication/reconfiguration, shared polling,
