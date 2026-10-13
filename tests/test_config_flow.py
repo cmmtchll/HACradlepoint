@@ -3,7 +3,12 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from homeassistant.config_entries import SOURCE_REAUTH, SOURCE_RECONFIGURE, SOURCE_USER
+from homeassistant.config_entries import (
+    SOURCE_REAUTH,
+    SOURCE_RECONFIGURE,
+    SOURCE_USER,
+    ConfigEntryState,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -146,3 +151,59 @@ async def test_update_flow(
         assert entry.data == updated
         assert entry.unique_id == "SERIAL-001"
         reload.assert_awaited_once_with(entry.entry_id)
+
+
+@pytest.mark.parametrize("source", [SOURCE_REAUTH, SOURCE_RECONFIGURE])
+@pytest.mark.parametrize(
+    "initial_state",
+    [
+        ConfigEntryState.LOADED,
+        ConfigEntryState.NOT_LOADED,
+        ConfigEntryState.SETUP_RETRY,
+    ],
+)
+@pytest.mark.parametrize("changed", [False, True])
+async def test_update_flow_real_reload(
+    hass: HomeAssistant,
+    product_api: AsyncMock,
+    source: str,
+    initial_state: ConfigEntryState,
+    changed: bool,
+) -> None:
+    """Reload exactly once through real HA setup/unload, even on unchanged input."""
+    entry = MockConfigEntry(domain=DOMAIN, unique_id="SERIAL-001", data=DATA)
+    entry.add_to_hass(hass)
+    if initial_state is ConfigEntryState.SETUP_RETRY:
+        product_api.side_effect = CannotConnect()
+        assert not await hass.config_entries.async_setup(entry.entry_id)
+        product_api.side_effect = None
+    elif initial_state is ConfigEntryState.LOADED:
+        assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert entry.state is initial_state
+    previous_coordinator = getattr(entry, "runtime_data", None)
+    calls_before = product_api.await_count
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": source, "entry_id": entry.entry_id},
+        data=entry.data if source == SOURCE_REAUTH else None,
+    )
+    updated = {**DATA, "password": "replacement"} if changed else DATA
+    with patch.object(
+        hass.config_entries, "async_reload", wraps=hass.config_entries.async_reload
+    ) as reload:
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], updated
+        )
+        await hass.async_block_till_done()
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == (
+        "reauth_successful" if source == SOURCE_REAUTH else "reconfigure_successful"
+    )
+    reload.assert_awaited_once_with(entry.entry_id)
+    assert entry.state is ConfigEntryState.LOADED
+    assert entry.data == updated
+    assert entry.runtime_data is not previous_coordinator
+    assert not entry.update_listeners
+    assert product_api.await_count == calls_before + 2
+    assert await hass.config_entries.async_unload(entry.entry_id)

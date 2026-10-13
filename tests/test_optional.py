@@ -1,5 +1,6 @@
 """Exercise optional telemetry, dynamic entities and GPS consent in real HA."""
 
+import asyncio
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -221,11 +222,15 @@ async def test_gps_options_reload_and_privacy(
     result = await hass.config_entries.options.async_init(entry.entry_id)
     assert result["type"] is FlowResultType.FORM
     assert result["data_schema"]({}) == {"gps_enabled": False}
-    result = await hass.config_entries.options.async_configure(
-        result["flow_id"], user_input={"gps_enabled": True}
-    )
-    assert result["type"] is FlowResultType.CREATE_ENTRY
-    await hass.async_block_till_done()
+    with patch.object(
+        hass.config_entries, "async_reload", wraps=hass.config_entries.async_reload
+    ) as reload:
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"], user_input={"gps_enabled": True}
+        )
+        assert result["type"] is FlowResultType.CREATE_ENTRY
+        await hass.async_block_till_done()
+    reload.assert_awaited_once_with(entry.entry_id)
     assert sensor_state(hass, "gps_latitude") == "0.0"
     assert sensor_state(hass, "gps_longitude") == "-0.5"
     assert sensor_state(hass, "gps_speed") == "2.0"
@@ -247,12 +252,85 @@ async def test_gps_options_reload_and_privacy(
     assert sensor_state(hass, "gps_latitude") == "0.0"
     result = await hass.config_entries.options.async_init(entry.entry_id)
     assert result["data_schema"]({}) == {"gps_enabled": True}
-    await hass.config_entries.options.async_configure(
-        result["flow_id"], user_input={"gps_enabled": False}
-    )
-    await hass.async_block_till_done()
+    with patch.object(
+        hass.config_entries, "async_reload", wraps=hass.config_entries.async_reload
+    ) as reload:
+        await hass.config_entries.options.async_configure(
+            result["flow_id"], user_input={"gps_enabled": False}
+        )
+        await hass.async_block_till_done()
+    reload.assert_awaited_once_with(entry.entry_id)
     optional_api.reset_mock()
     await entry.runtime_data.async_refresh()
     await hass.async_block_till_done()
     assert not any(call.args == ("gps",) for call in optional_api.await_args_list)
     assert sensor_state(hass, "gps_latitude") == "unavailable"
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    with patch.object(
+        hass.config_entries, "async_reload", wraps=hass.config_entries.async_reload
+    ) as reload:
+        await hass.config_entries.options.async_configure(
+            result["flow_id"], user_input={"gps_enabled": False}
+        )
+        await hass.async_block_till_done()
+    reload.assert_not_awaited()
+
+
+@pytest.mark.parametrize(
+    "slow_endpoint",
+    ["fw_info", "wan/primary_device", "wan/connection_state", "gps"],
+)
+async def test_wan_sample_time_ignores_other_endpoint_latency(
+    hass: HomeAssistant,
+    product_api: AsyncMock,
+    optional_api: AsyncMock,
+    slow_endpoint: str,
+) -> None:
+    """Use consecutive WAN completion times, not whole-poll completion times."""
+    values = readings()
+    wan_finished = asyncio.Event()
+    release_slow_read = asyncio.Event()
+    clock = 100.0
+    poll_finished_at = 110.0
+
+    async def fetch(path: str) -> object:
+        nonlocal clock
+        if path == "wan/devices":
+            wan_finished.set()
+        elif path == slow_endpoint:
+            await wan_finished.wait()
+            await release_slow_read.wait()
+            clock = poll_finished_at
+        return values[path]
+
+    optional_api.side_effect = fetch
+    entry = add_entry(hass)
+    hass.config_entries.async_update_entry(entry, options={"gps_enabled": True})
+    with patch(
+        "custom_components.cradlepoint.coordinator.time.monotonic",
+        side_effect=lambda: clock,
+    ):
+        setup = hass.async_create_task(hass.config_entries.async_setup(entry.entry_id))
+        await wan_finished.wait()
+        assert not setup.done()
+        release_slow_read.set()
+        assert await setup
+        await hass.async_block_till_done()
+        assert entry.runtime_data.data.sampled_at == 100.0
+        assert sensor_state(hass, "device-a_wan_received_rate") == "unknown"
+
+        wan_finished.clear()
+        release_slow_read.clear()
+        clock = 160.0
+        poll_finished_at = 200.0
+        values["wan/devices"] = wan_payload(220, 440)
+        refresh = hass.async_create_task(entry.runtime_data.async_refresh())
+        await wan_finished.wait()
+        assert not refresh.done()
+        release_slow_read.set()
+        await refresh
+        await hass.async_block_till_done()
+        assert entry.runtime_data.data.sampled_at == 160.0
+        assert sensor_state(hass, "device-a_wan_received_rate") == "2.0"
+        assert sensor_state(hass, "device-a_wan_sent_rate") == "4.0"
+    assert await hass.config_entries.async_unload(entry.entry_id)

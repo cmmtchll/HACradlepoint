@@ -22,6 +22,7 @@ from .api import (
 from .const import DOMAIN, UPDATE_INTERVAL
 from .telemetry import (
     RouterSnapshot,
+    WanDevice,
     parse_connection,
     parse_firmware,
     parse_gps,
@@ -64,19 +65,24 @@ class CradlePointCoordinator(DataUpdateCoordinator[RouterSnapshot]):
         except (CannotConnect, InvalidResponse):
             return None
 
+    async def _async_wan_sample(self) -> tuple[tuple[WanDevice, ...] | None, float]:
+        """Timestamp the WAN read independently of other endpoint latency."""
+        wan = await self._optional("wan/devices", parse_wan)
+        return wan, time.monotonic()
+
     async def _async_update_data(self) -> RouterSnapshot:
         """Read supported fields and translate communication failures."""
         try:
             product = await self.api.async_get_product()
             if product.serial_number != self.serial_number:
                 raise InvalidResponse("Router identity changed")
-            firmware, wan, primary, connection = await asyncio.gather(
+            firmware, wan_sample, primary, connection = await asyncio.gather(
                 self._optional("fw_info", parse_firmware),
-                self._optional("wan/devices", parse_wan),
+                self._async_wan_sample(),
                 self._optional("wan/primary_device", parse_primary),
                 self._optional("wan/connection_state", parse_connection),
             )
-            sampled_at = time.monotonic()
+            wan, sampled_at = wan_sample
             gps = await self._optional("gps", parse_gps) if self.gps_enabled else None
             if wan is not None and self.data is not None and self.last_update_success:
                 wan = with_rates(

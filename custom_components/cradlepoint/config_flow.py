@@ -4,7 +4,11 @@ from collections.abc import Mapping
 from typing import Any
 
 import probatio as vol
-from homeassistant.config_entries import ConfigFlow, ConfigFlowResult, OptionsFlow
+from homeassistant.config_entries import (
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlowWithReload,
+)
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -123,7 +127,7 @@ class CradlePointConfigFlow(ConfigFlow, domain=DOMAIN):
         return self.async_show_form(step_id=step, data_schema=schema, errors=errors)
 
 
-class CradlePointOptionsFlow(OptionsFlow):
+class CradlePointOptionsFlow(OptionsFlowWithReload):
     """Configure optional privacy-sensitive GPS polling."""
 
     async def async_step_init(

@@ -43,6 +43,8 @@ The first rate is unknown. A decreasing counter/reset, missing reading, missing
 device, failed WAN read or failed router poll resets the rate baseline: no negative
 rate, fabricated zero or bridging an outage. A genuinely unchanged counter yields
 zero rate. These are averages, not instantaneous link throughput.
+The monotonic sample time is captured when each WAN read completes, independently
+of firmware, primary-WAN, connection-state or GPS request latency.
 
 Optional HTTP 404/501, network and schema errors make the affected capability
 unavailable while product/other capabilities continue. Missing individual
