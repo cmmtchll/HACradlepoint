@@ -16,7 +16,7 @@ rules:
     comment: custom_components/cradlepoint/config_flow.py implements validated UI configuration; tests/test_config_flow.py exercises successful and rejected input.
   config-flow-test-coverage:
     status: done
-    comment: tests/test_config_flow.py exercises all implemented branches in custom_components/cradlepoint/config_flow.py; pyproject.toml defines the coverage gate.
+    comment: tests/test_config_flow.py and tests/test_optional.py exercise connection and GPS options branches in custom_components/cradlepoint/config_flow.py; pyproject.toml defines the unchanged coverage gate.
   dependency-transparency:
     status: done
     comment: custom_components/cradlepoint/manifest.json declares no extra requirements; custom_components/cradlepoint/api.py uses the Home Assistant supplied aiohttp client and docs/security.md explains the API contract.
@@ -88,7 +88,7 @@ rules:
     comment: custom_components/cradlepoint/config_flow.py implements same-router reauthentication; tests/test_config_flow.py and tests/test_init.py verify updates and authentication failures.
   test-coverage:
     status: done
-    comment: tests/test_api.py, tests/test_config_flow.py, and tests/test_init.py pass with 100 percent integration and flow coverage; pyproject.toml configures the integration coverage minimum.
+    comment: tests/test_api.py, tests/test_config_flow.py, tests/test_init.py, tests/test_optional.py and tests/test_telemetry.py exercise all implemented integration statements with 100 percent integration and flow coverage; pyproject.toml retains the coverage gates.
   devices:
     status: done
     comment: custom_components/cradlepoint/sensor.py defines router device metadata; tests/test_init.py verifies stable identifiers, manufacturer, model, and serial.
@@ -136,7 +136,7 @@ rules:
     comment: Verify less-useful diagnostic entities have appropriate default enablement.
   entity-translations:
     status: done
-    comment: custom_components/cradlepoint/sensor.py uses the product_name translation key defined in custom_components/cradlepoint/strings.json and custom_components/cradlepoint/translations/en.json.
+    comment: custom_components/cradlepoint/sensor.py uses translated product, firmware, WAN and opted-in GPS descriptions in custom_components/cradlepoint/strings.json and custom_components/cradlepoint/translations/en.json; tests/test_optional.py exercises their real HA entities.
   exception-translations:
     status: todo
     comment: Verify user-facing exceptions use supported translated error keys.
@@ -160,4 +160,4 @@ rules:
     comment: custom_components/cradlepoint/__init__.py and custom_components/cradlepoint/config_flow.py inject the Home Assistant session into custom_components/cradlepoint/api.py without taking session ownership.
   strict-typing:
     status: done
-    comment: Strict mypy checks pass for the integration and scripts/quality_scale_audit.py under pyproject.toml; custom_components/cradlepoint/coordinator.py defines typed entry runtime data and custom_components/cradlepoint/api.py defines typed product data.
+    comment: Strict mypy checks pass under pyproject.toml; custom_components/cradlepoint/coordinator.py defines typed entry runtime data and custom_components/cradlepoint/telemetry.py defines immutable normalized WAN/GPS snapshots.

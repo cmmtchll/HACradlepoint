@@ -8,11 +8,16 @@ the router's local NetCloud OS (NCOS) API. This repository follows
 documentation, strict typing, coverage gates, and evidence-based quality tracking.
 It is not affiliated with Ericsson Enterprise Wireless Solutions.
 
-## Implemented foundation
+## Implemented experimental telemetry
 
 - UI setup, serial-number-based duplicate prevention, reauthentication, and
   reconfiguration without changing router identity.
-- One router device and a diagnostic **Product name** sensor.
+- One router device, **Product name**, reported **NCOS version**, primary WAN
+  and WAN connection state.
+- Dynamic per-WAN connection/link states, documented transport type, received/sent
+  byte totals and reset-safe average byte/second rates.
+- Optional GPS lock, age, coordinates, altitude, speed, heading and satellites.
+  GPS requests are **off by default**; enable deliberately through **Configure**.
 - Local HTTPS polling every 60 seconds, connection validation at setup, and
   unavailable/recovery handling.
 - Minimal diagnostics that do not export credentials, router addresses, serial
@@ -23,10 +28,14 @@ It is not affiliated with Ericsson Enterprise Wireless Solutions.
 
 **No hardware/model/firmware combination has been verified yet.** Tests use
 synthetic API responses. A router must provide the documented NCOS
-`GET /api/status/product` endpoint with `success: true` and nonempty
-`data.serial_number` and `data.product_name`. WAN state, cellular signal,
-traffic counters, GPS, reboot controls, NetCloud cloud access, and automatic
-discovery are **not implemented**.
+`GET /api/status/product_info` endpoint with `success: true`, nonempty
+`data.manufacturing.serial_num` and `data.product_name`. A **404 only** permits
+the legacy `/api/status/product` contract. The IBR1700-600M and NCOS 6.x/7.x are
+experimental targets, not verified compatibility claims; optional endpoints are
+capability-detected, not guessed from a model/version. Wi-Fi-as-WAN can contribute
+generic WAN readings if present in that tree; SSID/signal schemas remain deferred.
+WAN state is **not Internet health**. Controls, cloud access and automatic router
+discovery are not implemented. See [contracts and limits](docs/features.md).
 
 ## Installation
 
@@ -58,7 +67,9 @@ hostname. There is **no HTTP mode or TLS-verification bypass**. See the
 The router URL, username, and password are configured through the UI, not YAML.
 The polling interval is fixed at 60 seconds. Use **Reconfigure** to update the
 address or credentials for the same router; authentication failures prompt
-reauthentication. See [all configuration parameters](docs/setup.md).
+reauthentication. **Configure** offers GPS consent: enabling it exposes precise
+location to Home Assistant, history and backups. See [all configuration
+parameters](docs/setup.md).
 
 To remove the integration, delete its entry under **Settings → Devices &
 services**. Home Assistant unloads its entities and stops polling. Remove the

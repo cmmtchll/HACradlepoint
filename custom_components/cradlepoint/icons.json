@@ -3,7 +3,18 @@
     "sensor": {
       "product_name": {
         "default": "mdi:router-network"
-      }
+      },
+      "firmware": {"default": "mdi:chip"},
+      "primary": {"default": "mdi:wan"},
+      "wan_state": {"default": "mdi:wan"},
+      "wan_connection": {"default": "mdi:wan"},
+      "wan_link": {"default": "mdi:ethernet"},
+      "wan_transport": {"default": "mdi:network"},
+      "gps_lock": {"default": "mdi:crosshairs-gps"},
+      "gps_latitude": {"default": "mdi:latitude"},
+      "gps_longitude": {"default": "mdi:longitude"},
+      "gps_heading": {"default": "mdi:compass"},
+      "gps_satellites": {"default": "mdi:satellite-variant"}
     }
   }
 }

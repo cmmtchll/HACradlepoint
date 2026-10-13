@@ -1,6 +1,6 @@
 # Home Assistant integration quality scale
 
-## Status: experimental foundation; no medallion awarded
+## Status: experimental read-only telemetry; no medallion awarded
 
 This project follows HAVRV's evidence-based approach to the official
 [Home Assistant checklist](https://developers.home-assistant.io/docs/core/integration-quality-scale/checklist/).
@@ -54,3 +54,11 @@ must also be complete before representing this tier as ready.
 No model is certified supported yet. Do not place achieved-medallion badges
 in the README or set a manifest quality tier without a full documented review.
 Keep the catalog aligned with the upstream checklist when upgrading HA.
+
+Documentation-guided firmware/WAN and opted-in GPS now use frozen normalized
+snapshots. `tests/test_optional.py` covers optional failures/authentication,
+dynamic WAN entities and GPS consent/reload; `tests/test_telemetry.py` covers
+finite/range checks, unknown readings, privacy allowlists and reset-safe rates.
+GPS does not enter diagnostics or logs, but opted-in entity states/history are
+privacy-sensitive. NCOS 6.x/7.x and IBR1700-600M remain experimental, not certified.
+Existing open quality gaps are not promoted by synthetic fixtures or coverage.

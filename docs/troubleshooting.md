@@ -26,9 +26,10 @@ was changed.
 
 ## Unsupported or malformed response
 
-Confirm the router provides the documented `/api/status/product` response:
-`success: true` and a data object with nonempty `serial_number` and
-`product_name` strings. HTML login pages, missing identity fields, redirects,
+Confirm `/api/status/product_info` returns `success: true` and nonempty
+`data.manufacturing.serial_num`/`data.product_name` strings. HTTP 404 alone permits
+the legacy `/api/status/product` response with `serial_number`/`product_name`.
+HTML login pages, missing identity fields, redirects,
 and unsuccessful API responses are not accepted as working connections.
 Provide a sanitized response shape when reporting an incompatible firmware.
 
@@ -44,6 +45,16 @@ The coordinator marks the entity unavailable after failed updates and retries
 on its normal polling schedule. Correct the router/network/certificate issue,
 or complete reauthentication when requested. The last product name is not
 presented as a current reading while the router is unavailable.
+
+Optional telemetry failures affect only the corresponding capability. HTTP
+404/501 may mean unsupported firmware or a disabled capability; later polls retry.
+Any endpoint's HTTP 401/403 requests reauthentication. Missing per-WAN counters
+show unknown, not zero; rates need two consecutive good samples and become unknown
+after resets/outages. WAN state is not a test of Internet reachability.
+GPS entities require the **Configure** opt-in; coordinates also need a locked fix
+no older than 120 seconds at sampling. Check the router's antenna/GPS settings
+without posting NMEA or location. Wi-Fi SSID/signal fields are deliberately deferred
+because the verified vendor schema does not specify them.
 
 ## Reporting an issue
 

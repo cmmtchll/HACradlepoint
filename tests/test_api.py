@@ -96,12 +96,15 @@ async def test_product_request() -> None:
     api, session, _ = make_client(
         {
             "success": True,
-            "data": {"serial_number": " SERIAL-001 ", "product_name": " E300 "},
+            "data": {
+                "manufacturing": {"serial_num": " SERIAL-001 "},
+                "product_name": " E300 ",
+            },
         }
     )
     assert await api.async_get_product() == ProductInfo("SERIAL-001", "E300")
     session.get.assert_called_once_with(
-        "https://router/api/status/product",
+        "https://router/api/status/product_info",
         headers={"Authorization": aiohttp.encode_basic_auth("admin", "secret")},
         allow_redirects=False,
         ssl=True,
@@ -131,7 +134,10 @@ async def test_invalid_credentials(username: str, password: str) -> None:
 async def test_unicode_credentials() -> None:
     """Encode non-Latin-1 credentials as UTF-8 without crashing the flow."""
     _, session, _ = make_client(
-        {"success": True, "data": {"serial_number": "SERIAL", "product_name": "E300"}}
+        {
+            "success": True,
+            "data": {"manufacturing": {"serial_num": "SERIAL"}, "product_name": "E300"},
+        }
     )
     api = CradlePointApi(session, "https://router", "用户名", "密码")
     assert await api.async_get_product() == ProductInfo("SERIAL", "E300")
@@ -149,7 +155,7 @@ async def test_authentication_error(status: int) -> None:
     response.json.assert_not_awaited()
 
 
-@pytest.mark.parametrize("status", [301, 302, 307, 308, 404, 500])
+@pytest.mark.parametrize("status", [301, 302, 307, 308, 500])
 async def test_http_error_and_redirect(status: int) -> None:
     """Reject HTTP errors and redirects rather than forwarding credentials."""
     api, session, response = make_client({}, status)
@@ -233,3 +239,55 @@ async def test_json_errors(error: Exception) -> None:
     response.json.side_effect = error
     with pytest.raises(InvalidResponse, match="Invalid JSON response"):
         await api.async_get_product()
+
+
+@pytest.mark.parametrize("status", [404, 501])
+async def test_unsupported_optional_endpoint(status: int) -> None:
+    """Distinguish absent/unsupported optional endpoints from transport failure."""
+    from custom_components.cradlepoint.api import UnsupportedEndpoint
+
+    api, session, _ = make_client({}, status)
+    with pytest.raises(UnsupportedEndpoint):
+        await api.async_get("gps")
+    assert session.get.call_count == 1
+
+
+async def test_legacy_fallback() -> None:
+    """Fallback only when documented product_info is missing; preserve serial."""
+    api, session, response = make_client(
+        {"success": True, "data": {"serial_number": "SERIAL", "product_name": "E300"}}
+    )
+    missing = MagicMock(status=404)
+    context = MagicMock()
+    context.__aenter__ = AsyncMock(side_effect=[missing, response])
+    context.__aexit__ = AsyncMock(return_value=False)
+    session.get.return_value = context
+    assert await api.async_get_product() == ProductInfo("SERIAL", "E300")
+    assert [call.args[0] for call in session.get.call_args_list] == [
+        "https://router/api/status/product_info",
+        "https://router/api/status/product",
+    ]
+
+
+async def test_missing_data() -> None:
+    """Require a data key in a generic successful envelope."""
+    api, _, _ = make_client({"success": True})
+    with pytest.raises(InvalidResponse, match="Missing response data"):
+        await api.async_get("gps")
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        {"manufacturing": {"serial_num": " "}, "product_name": "E300"},
+        {"manufacturing": {"serial_num": 1}, "product_name": "E300"},
+        {"manufacturing": {"serial_num": "SERIAL"}, "product_name": " "},
+        {"manufacturing": {"serial_num": "SERIAL"}, "product_name": 1},
+    ],
+)
+async def test_documented_invalid_identity(data: object) -> None:
+    """Malformed documented identity never tries a legacy endpoint."""
+    api, session, _ = make_client({"success": True, "data": data})
+    with pytest.raises(InvalidResponse):
+        await api.async_get_product()
+    assert session.get.call_count == 1
