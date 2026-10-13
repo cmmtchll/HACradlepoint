@@ -70,6 +70,31 @@ async def test_invalid_origin(hass: HomeAssistant, product_api: AsyncMock) -> No
     product_api.assert_not_awaited()
 
 
+@pytest.mark.parametrize(
+    ("username", "password"),
+    [
+        ("", "secret"),
+        ("admin", ""),
+        ("invalid:username", "secret"),
+        ("\ud800", "secret"),
+        ("admin", "\ud800"),
+    ],
+)
+async def test_invalid_credentials(
+    hass: HomeAssistant, username: str, password: str
+) -> None:
+    """Keep invalid credentials in the UI form without performing a request."""
+    with patch("aiohttp.ClientSession.get") as request:
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={"source": SOURCE_USER},
+            data={**INPUT, "username": username, "password": password},
+        )
+    assert result["type"] is FlowResultType.FORM
+    assert result["errors"] == {"base": "invalid_auth"}
+    request.assert_not_called()
+
+
 async def test_duplicate(hass: HomeAssistant, product_api: AsyncMock) -> None:
     """Identify duplicates by serial even when the origin changes."""
     entry = MockConfigEntry(domain=DOMAIN, unique_id="SERIAL-001", data=DATA)

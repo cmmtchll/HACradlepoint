@@ -31,7 +31,7 @@
     },
     "error": {
       "invalid_origin": "Enter only an HTTPS origin, without credentials, a path, query, or fragment.",
-      "invalid_auth": "The router rejected the credentials.",
+      "invalid_auth": "The credentials are invalid or were rejected by the router. Enter a nonempty username and password; usernames must not contain a colon.",
       "cannot_connect": "Unable to connect securely to the router. Check connectivity and its trusted TLS certificate.",
       "invalid_response": "The router did not return supported product information.",
       "wrong_device": "This router's serial number does not match the configured router."

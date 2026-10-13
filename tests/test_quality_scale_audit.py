@@ -186,6 +186,16 @@ def test_done_evidence(tmp_path: Path, assessment: Assessment, extension: str) -
     assert audit(write_assessment(tmp_path, assessment), tmp_path) == assessment
 
 
+def test_evidence_sentence_punctuation(tmp_path: Path, assessment: Assessment) -> None:
+    """Recognize evidence references that end a prose sentence."""
+    (tmp_path / "README.md").write_text("Evidence", encoding="utf-8")
+    assessment["brands"] = {
+        "status": "done",
+        "comment": "The supported behavior is documented in README.md.",
+    }
+    assert audit(write_assessment(tmp_path, assessment), tmp_path) == assessment
+
+
 @pytest.mark.parametrize(
     "reference",
     ("missing.py", "existing.txt", "../outside.py", "/outside.py", r"C:\outside.py"),
@@ -231,7 +241,13 @@ def test_every_reference_must_exist(tmp_path: Path, assessment: Assessment) -> N
 
 @pytest.mark.parametrize(
     "reference",
-    ("//outside.py", "../outside.py", "foo//../outside.py", r"\\outside.py"),
+    (
+        "//outside.py",
+        "../outside.py",
+        "foo//../outside.py",
+        r"\\outside.py",
+        "../outside.py.",
+    ),
 )
 def test_valid_evidence_cannot_hide_escape(
     tmp_path: Path, assessment: Assessment, reference: str

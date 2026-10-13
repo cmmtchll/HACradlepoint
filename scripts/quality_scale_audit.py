@@ -78,7 +78,7 @@ STATUSES = frozenset({"done", "todo", "exempt"})
 _EVIDENCE = re.compile(
     r"(?<![\w.-])(?:[A-Za-z]:[/\\]+|[/\\]+)?"
     r"(?:[\w.-]+[/\\]+)*[\w.-]+\.(?:py|md|rst|json|yaml|yml|toml|png)"
-    r"(?![\w.-])"
+    r"(?![\w-]|\.[\w.-])"
 )
 _PLACEHOLDERS = frozenset(
     {"todo", "tbd", "n/a", "na", "none", "unknown", "pending", "done", "exempt"}
@@ -212,8 +212,7 @@ def render(assessment: Mapping[str, Mapping[str, str]]) -> str:
             status = entry["status"]
             label = {"done": "met", "todo": "NOT MET", "exempt": "exempt"}[status]
             lines.append(
-                f"| {tier} | {rule} | {status} | {label} | "
-                f"{_cell(entry['comment'])} |"
+                f"| {tier} | {rule} | {status} | {label} | {_cell(entry['comment'])} |"
             )
             if status == "todo":
                 outstanding.append(rule)

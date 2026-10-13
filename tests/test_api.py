@@ -41,7 +41,7 @@ def test_normalize_origin(origin: str, expected: str) -> None:
         "http://router",
         "router",
         "https://",
-        "******router",
+        "https://user@router",
         "https://@router",
         "https://router/api",
         "https://router?x=1",
@@ -51,6 +51,7 @@ def test_normalize_origin(origin: str, expected: str) -> None:
         "https://router:invalid",
         "https://router:65536",
         "https://router:0",
+        "https://router:-1",
         "https://router:",
         "https://router\\evil",
         "https://router host",
@@ -108,14 +109,35 @@ async def test_product_request() -> None:
     session.close.assert_not_called()
 
 
-@pytest.mark.parametrize("username", ["invalid:username", "\ud800"])
-async def test_invalid_credentials(username: str) -> None:
+@pytest.mark.parametrize(
+    ("username", "password"),
+    [
+        ("invalid:username", "secret"),
+        ("\ud800", "secret"),
+        ("admin", "\ud800"),
+        ("", "secret"),
+        ("admin", ""),
+    ],
+)
+async def test_invalid_credentials(username: str, password: str) -> None:
     """Handle credentials that cannot be safely encoded as HTTP Basic auth."""
     session = MagicMock(spec=aiohttp.ClientSession)
-    api = CradlePointApi(session, "https://router", username, "secret")
+    api = CradlePointApi(session, "https://router", username, password)
     with pytest.raises(InvalidAuth):
         await api.async_get_product()
     session.get.assert_not_called()
+
+
+async def test_unicode_credentials() -> None:
+    """Encode non-Latin-1 credentials as UTF-8 without crashing the flow."""
+    _, session, _ = make_client(
+        {"success": True, "data": {"serial_number": "SERIAL", "product_name": "E300"}}
+    )
+    api = CradlePointApi(session, "https://router", "用户名", "密码")
+    assert await api.async_get_product() == ProductInfo("SERIAL", "E300")
+    assert session.get.call_args.kwargs["headers"] == {
+        "Authorization": aiohttp.encode_basic_auth("用户名", "密码")
+    }
 
 
 @pytest.mark.parametrize("status", [401, 403])

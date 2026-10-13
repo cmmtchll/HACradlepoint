@@ -7,7 +7,11 @@ from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from homeassistant.util import dt as dt_util
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_fire_time_changed,
+)
 
 from custom_components.cradlepoint.api import (
     CannotConnect,
@@ -62,6 +66,21 @@ async def test_setup_and_unload(hass: HomeAssistant, product_api: AsyncMock) -> 
     assert unloaded_state is not None
     assert unloaded_state.state == "unavailable"
     assert unloaded_state.attributes["restored"] is True
+    calls_before = product_api.await_count
+    async_fire_time_changed(hass, dt_util.utcnow() + UPDATE_INTERVAL * 2)
+    await hass.async_block_till_done()
+    assert product_api.await_count == calls_before
+
+
+async def test_polling(hass: HomeAssistant, product_api: AsyncMock) -> None:
+    """Poll every sixty seconds while entities are loaded."""
+    entry = add_entry(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert product_api.await_count == 1
+    async_fire_time_changed(hass, dt_util.utcnow() + UPDATE_INTERVAL)
+    await hass.async_block_till_done()
+    assert product_api.await_count == 2
 
 
 @pytest.mark.parametrize(
@@ -109,12 +128,14 @@ async def test_unavailable_and_recovery(
         product_api.side_effect = error
     else:
         product_api.return_value = error
-    await entry.runtime_data.async_request_refresh()
+    await entry.runtime_data.async_refresh()
     await hass.async_block_till_done()
     assert hass.states.get(entity_id).state == "unavailable"
+    diagnostics = await async_get_config_entry_diagnostics(hass, entry)
+    assert diagnostics["last_update_success"] is False
     product_api.side_effect = None
     product_api.return_value = ProductInfo("SERIAL-001", "E300 updated")
-    await entry.runtime_data.async_request_refresh()
+    await entry.runtime_data.async_refresh()
     await hass.async_block_till_done()
     assert hass.states.get(entity_id).state == "E300 updated"
 

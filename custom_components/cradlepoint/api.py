@@ -50,14 +50,6 @@ def normalize_origin(value: str) -> str:
         or port == 0
     ):
         raise ValueError("Invalid HTTPS origin")
-    if parsed.netloc.startswith("["):
-        suffix = parsed.netloc[parsed.netloc.index("]") + 1 :]
-        if suffix and not (
-            suffix.startswith(":")
-            and suffix[1:].isascii()
-            and suffix[1:].isdigit()
-        ):
-            raise ValueError("Invalid HTTPS origin")
     try:
         address = ipaddress.ip_address(host)
     except ValueError:
@@ -111,6 +103,8 @@ class CradlePointApi:
 
     async def async_get_product(self) -> ProductInfo:
         """Fetch and validate product information with verified TLS."""
+        if not self._username or not self._password:
+            raise InvalidAuth("Username and password must be nonempty")
         try:
             authorization = aiohttp.encode_basic_auth(self._username, self._password)
         except (ValueError, UnicodeError):

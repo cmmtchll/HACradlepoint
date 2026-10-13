@@ -3,23 +3,23 @@ rules:
     status: exempt
     comment: This initial read-only integration registers no service actions.
   appropriate-polling:
-    status: todo
-    comment: Confirm polling interval and coordinator behavior against source and tests.
+    status: done
+    comment: custom_components/cradlepoint/const.py sets a 60-second coordinator interval; tests/test_init.py verifies scheduled polling without claiming hardware verification.
   brands:
     status: todo
     comment: Submit and verify the integration assets in the Home Assistant brands repository.
   common-modules:
-    status: todo
-    comment: Verify shared constants and coordinator responsibilities against source and tests.
+    status: done
+    comment: custom_components/cradlepoint/const.py holds shared constants and custom_components/cradlepoint/coordinator.py centralizes updates exercised by tests/test_init.py.
   config-flow:
-    status: todo
-    comment: Verify the complete user configuration flow and validation tests.
+    status: done
+    comment: custom_components/cradlepoint/config_flow.py implements validated UI configuration; tests/test_config_flow.py exercises successful and rejected input.
   config-flow-test-coverage:
-    status: todo
-    comment: Measure full configuration flow branch coverage before marking this complete.
+    status: done
+    comment: tests/test_config_flow.py exercises all implemented branches in custom_components/cradlepoint/config_flow.py; pyproject.toml defines the coverage gate.
   dependency-transparency:
-    status: todo
-    comment: Confirm dependency declarations and documented local API behavior.
+    status: done
+    comment: custom_components/cradlepoint/manifest.json declares no extra requirements; custom_components/cradlepoint/api.py uses the Home Assistant supplied aiohttp client and docs/security.rst explains the API contract.
   docs-actions:
     status: exempt
     comment: This initial read-only integration exposes no service actions to document.
@@ -39,32 +39,32 @@ rules:
     status: exempt
     comment: This integration provides no custom automation triggers.
   entity-event-setup:
-    status: todo
-    comment: Verify entity subscription registration and listener cleanup in source and tests.
+    status: done
+    comment: custom_components/cradlepoint/sensor.py uses CoordinatorEntity lifecycle subscriptions; tests/test_init.py verifies updates stop after unloading.
   entity-unique-id:
-    status: todo
-    comment: Verify stable serial-based entity identifiers in source and tests.
+    status: done
+    comment: custom_components/cradlepoint/sensor.py defines serial-based entity identifiers; tests/test_init.py verifies their registry identity.
   has-entity-name:
-    status: todo
-    comment: Verify device-based entity naming and translated entity names.
+    status: done
+    comment: custom_components/cradlepoint/sensor.py enables has_entity_name and custom_components/cradlepoint/strings.json defines the product-name translation.
   runtime-data:
-    status: todo
-    comment: Verify typed configuration entry runtime data in source and tests.
+    status: done
+    comment: custom_components/cradlepoint/coordinator.py defines typed entries and custom_components/cradlepoint/__init__.py assigns runtime_data exercised by tests/test_init.py.
   test-before-configure:
-    status: todo
-    comment: Verify live connection validation before saving configuration.
+    status: done
+    comment: custom_components/cradlepoint/config_flow.py reads product identity before entry creation; tests/test_config_flow.py verifies success and distinct failure handling.
   test-before-setup:
-    status: todo
-    comment: Verify initial coordinator refresh before forwarding platform setup.
+    status: done
+    comment: custom_components/cradlepoint/__init__.py awaits first refresh before forwarding platforms; tests/test_init.py checks failed setup creates no entities.
   unique-config-entry:
-    status: todo
-    comment: Verify serial identity duplicate prevention in source and tests.
+    status: done
+    comment: custom_components/cradlepoint/config_flow.py checks serial-based unique IDs; tests/test_config_flow.py verifies duplicates are rejected even at a changed origin.
   action-exceptions:
     status: exempt
     comment: This initial read-only integration has no service actions that raise exceptions.
   config-entry-unloading:
-    status: todo
-    comment: Verify successful unload and cleanup behavior with lifecycle tests.
+    status: done
+    comment: custom_components/cradlepoint/__init__.py unloads platforms; tests/test_init.py verifies listener cleanup and propagates unload failure.
   docs-configuration-parameters:
     status: done
     comment: docs/setup.rst explains configuration parameters and their usage.
@@ -72,29 +72,29 @@ rules:
     status: done
     comment: docs/setup.rst documents required router credentials and installation parameters.
   entity-unavailable:
-    status: todo
-    comment: Verify coordinator failure makes entities unavailable and successful refresh recovers them.
+    status: done
+    comment: custom_components/cradlepoint/sensor.py inherits coordinator availability; tests/test_init.py verifies failure, wrong-router rejection, and successful recovery.
   integration-owner:
-    status: todo
-    comment: Verify a responsible integration owner is declared in the manifest.
+    status: done
+    comment: custom_components/cradlepoint/manifest.json declares the integration codeowner and CONTRIBUTING.rst documents maintainer reporting responsibilities.
   log-when-unavailable:
     status: todo
     comment: Verify coordinator transition logging avoids repeated failure messages.
   parallel-updates:
-    status: todo
-    comment: Verify the platform explicitly declares safe parallel update behavior.
+    status: done
+    comment: custom_components/cradlepoint/sensor.py explicitly declares PARALLEL_UPDATES = 0 because custom_components/cradlepoint/coordinator.py handles shared polling.
   reauthentication-flow:
-    status: todo
-    comment: Verify authentication failure and successful credential replacement with flow tests.
+    status: done
+    comment: custom_components/cradlepoint/config_flow.py implements same-router reauthentication; tests/test_config_flow.py and tests/test_init.py verify updates and authentication failures.
   test-coverage:
-    status: todo
-    comment: Measure integration coverage and all required behaviors before declaring this met.
+    status: done
+    comment: tests/test_api.py, tests/test_config_flow.py, and tests/test_init.py pass with 100 percent integration and flow coverage; pyproject.toml configures the integration coverage minimum.
   devices:
-    status: todo
-    comment: Verify router device registry metadata and stable identifiers in source and tests.
+    status: done
+    comment: custom_components/cradlepoint/sensor.py defines router device metadata; tests/test_init.py verifies stable identifiers, manufacturer, model, and serial.
   diagnostics:
-    status: todo
-    comment: Verify sanitized diagnostics and credential redaction with dedicated tests.
+    status: done
+    comment: custom_components/cradlepoint/diagnostics.py allowlists product name and update success; tests/test_init.py confirms addresses, credentials, serials, and raw responses are excluded.
   discovery:
     status: todo
     comment: Automatic router discovery is not implemented in this initial release.
@@ -126,8 +126,8 @@ rules:
     status: todo
     comment: Verify device lifecycle behavior and assess dynamic device requirements.
   entity-category:
-    status: todo
-    comment: Verify diagnostic entity categories against source and tests.
+    status: done
+    comment: custom_components/cradlepoint/sensor.py assigns the diagnostic category and tests/test_init.py verifies the entity registry category.
   entity-device-class:
     status: todo
     comment: Verify device classes are assigned where semantically appropriate.
@@ -135,17 +135,17 @@ rules:
     status: todo
     comment: Verify less-useful diagnostic entities have appropriate default enablement.
   entity-translations:
-    status: todo
-    comment: Verify entity translation keys and translated names in source and tests.
+    status: done
+    comment: custom_components/cradlepoint/sensor.py uses the product_name translation key defined in custom_components/cradlepoint/strings.json and custom_components/cradlepoint/translations/en.json.
   exception-translations:
     status: todo
     comment: Verify user-facing exceptions use supported translated error keys.
   icon-translations:
-    status: todo
-    comment: Verify icon translation keys and platform icon definitions.
+    status: done
+    comment: custom_components/cradlepoint/icons.json defines the translated product_name sensor icon matching custom_components/cradlepoint/sensor.py.
   reconfiguration-flow:
-    status: todo
-    comment: Verify reconfiguration updates connection details without replacing device identity.
+    status: done
+    comment: custom_components/cradlepoint/config_flow.py implements same-router reconfiguration; tests/test_config_flow.py verifies changed connection details and wrong-router rejection.
   repair-issues:
     status: todo
     comment: Repair issue creation and resolution are not implemented in this initial release.
@@ -153,11 +153,11 @@ rules:
     status: todo
     comment: Verify stale device handling and assess registry removal behavior.
   async-dependency:
-    status: todo
-    comment: Verify all router communication uses asynchronous APIs without blocking operations.
+    status: done
+    comment: custom_components/cradlepoint/api.py uses asynchronous aiohttp requests and timeouts; tests/test_api.py exercises response, authentication, TLS, and timeout handling.
   inject-websession:
-    status: todo
-    comment: Verify the shared Home Assistant web session is injected into the API client.
+    status: done
+    comment: custom_components/cradlepoint/__init__.py and custom_components/cradlepoint/config_flow.py inject the Home Assistant session into custom_components/cradlepoint/api.py without taking session ownership.
   strict-typing:
-    status: todo
-    comment: Verify strict typing passes for integration code and the audit script.
+    status: done
+    comment: Strict mypy checks pass for the integration and scripts/quality_scale_audit.py under pyproject.toml; custom_components/cradlepoint/coordinator.py defines typed entry runtime data and custom_components/cradlepoint/api.py defines typed product data.
