@@ -47,7 +47,7 @@ HACS and hassfest; local lint/type/test success is not a substitute for them.
   location, account IDs, and authorization headers from contributed fixtures.
 * Update relevant docs, `quality_scale.yaml` evidence, and the changelog.
   Never claim a medallion merely because CI passes.
-* Inspect the ``Validate`` workflow for the latest commit. Missing, skipped,
+* Inspect the `Validate` workflow for the latest commit. Missing, skipped,
   awaiting-approval, and cancelled checks are unverified, not passing.
   If necessary, dispatch the existing workflow and diagnose its logs.
 
@@ -65,8 +65,8 @@ repository. No workflow needs router credentials.
 ## Maintainer settings
 
 After the first CI run, configure a repository ruleset/branch protection to
-require ``Lint and types``, ``Tests and quality scale``, ``HACS validation``,
-and ``Home Assistant validation`` plus review before merge. These GitHub
+require `Lint and types`, `Tests and quality scale`, `HACS validation`,
+and `Home Assistant validation` plus review before merge. These GitHub
 settings are administrative actions, not applied automatically by this scaffold.
 Enable vulnerability alerts and review Dependabot proposals rather than
 automatically merging dependency changes.

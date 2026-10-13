@@ -1,7 +1,7 @@
 # CradlePoint coding-agent configuration
 
-Follow `CONTRIBUTING.rst`, `docs/architecture.rst`, `docs/security.rst`, and
-`quality_scale.rst`. Target Python >=3.14.2,<3.15 and HA Core 2026.10.1.
+Follow `CONTRIBUTING.md`, `docs/architecture.md`, `docs/security.md`, and
+`quality_scale.md`. Target Python >=3.14.2,<3.15 and HA Core 2026.10.1.
 This is a read-only local NCOS integration, not a NetCloud cloud client.
 
 ## Agent roles
@@ -26,7 +26,7 @@ fields, model compatibility, or WAN health from management-API reachability.
 Use synthetic credentials and IDs. Do not add TLS bypasses, broad exception
 handlers, write controls, or per-entity HTTP requests.
 
-Run every command in `CONTRIBUTING.rst`, update relevant documentation and
+Run every command in `CONTRIBUTING.md`, update relevant documentation and
 quality evidence, and inspect all four Validate jobs for the latest commit.
 Report blocked/skipped checks as unverified; do not weaken gates.
 Update Home Assistant and its pytest plugin together when upgrading pins.

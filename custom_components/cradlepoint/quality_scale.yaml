@@ -19,7 +19,7 @@ rules:
     comment: tests/test_config_flow.py exercises all implemented branches in custom_components/cradlepoint/config_flow.py; pyproject.toml defines the coverage gate.
   dependency-transparency:
     status: done
-    comment: custom_components/cradlepoint/manifest.json declares no extra requirements; custom_components/cradlepoint/api.py uses the Home Assistant supplied aiohttp client and docs/security.rst explains the API contract.
+    comment: custom_components/cradlepoint/manifest.json declares no extra requirements; custom_components/cradlepoint/api.py uses the Home Assistant supplied aiohttp client and docs/security.md explains the API contract.
   docs-actions:
     status: exempt
     comment: This initial read-only integration exposes no service actions to document.
@@ -28,13 +28,13 @@ rules:
     comment: This integration provides no custom automation conditions.
   docs-high-level-description:
     status: done
-    comment: README.md describes the read-only router integration and its scope; quality_scale.rst explains this self-assessment.
+    comment: README.md describes the read-only router integration and its scope; quality_scale.md explains this self-assessment.
   docs-installation-instructions:
     status: done
-    comment: docs/setup.rst explains installation and initial configuration.
+    comment: docs/setup.md explains installation and initial configuration.
   docs-removal-instructions:
     status: done
-    comment: docs/setup.rst describes removing the integration and its configuration entry.
+    comment: docs/setup.md describes removing the integration and its configuration entry.
   docs-triggers:
     status: exempt
     comment: This integration provides no custom automation triggers.
@@ -67,16 +67,16 @@ rules:
     comment: custom_components/cradlepoint/__init__.py unloads platforms; tests/test_init.py verifies listener cleanup and propagates unload failure.
   docs-configuration-parameters:
     status: done
-    comment: docs/setup.rst explains configuration parameters and their usage.
+    comment: docs/setup.md explains configuration parameters and their usage.
   docs-installation-parameters:
     status: done
-    comment: docs/setup.rst documents required router credentials and installation parameters.
+    comment: docs/setup.md documents required router credentials and installation parameters.
   entity-unavailable:
     status: done
     comment: custom_components/cradlepoint/sensor.py inherits coordinator availability; tests/test_init.py verifies failure, wrong-router rejection, and successful recovery.
   integration-owner:
     status: done
-    comment: custom_components/cradlepoint/manifest.json declares the integration codeowner and CONTRIBUTING.rst documents maintainer reporting responsibilities.
+    comment: custom_components/cradlepoint/manifest.json declares the integration codeowner and CONTRIBUTING.md documents maintainer reporting responsibilities.
   log-when-unavailable:
     status: todo
     comment: Verify coordinator transition logging avoids repeated failure messages.
@@ -103,25 +103,25 @@ rules:
     comment: Discovery-driven connection updates are not implemented in this initial release.
   docs-data-update:
     status: done
-    comment: docs/features.rst documents polling and the local data update behavior.
+    comment: docs/features.md documents polling and the local data update behavior.
   docs-examples:
     status: done
-    comment: docs/features.rst gives practical examples using the provided router sensors.
+    comment: docs/features.md gives practical examples using the provided router sensors.
   docs-known-limitations:
     status: done
-    comment: docs/features.rst and docs/security.rst explain supported scope and limitations.
+    comment: docs/features.md and docs/security.md explain supported scope and limitations.
   docs-supported-devices:
     status: done
-    comment: docs/features.rst describes router compatibility and verification limits.
+    comment: docs/features.md describes router compatibility and verification limits.
   docs-supported-functions:
     status: done
-    comment: docs/features.rst lists supported read-only router functions.
+    comment: docs/features.md lists supported read-only router functions.
   docs-troubleshooting:
     status: done
-    comment: docs/troubleshooting.rst explains connection and authentication troubleshooting; CONTRIBUTING.rst explains reporting reproducible issues.
+    comment: docs/troubleshooting.md explains connection and authentication troubleshooting; CONTRIBUTING.md explains reporting reproducible issues.
   docs-use-cases:
     status: done
-    comment: docs/features.rst describes practical monitoring use cases.
+    comment: docs/features.md describes practical monitoring use cases.
   dynamic-devices:
     status: todo
     comment: Verify device lifecycle behavior and assess dynamic device requirements.
