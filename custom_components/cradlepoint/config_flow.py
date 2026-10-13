@@ -4,8 +4,13 @@ from collections.abc import Mapping
 from typing import Any
 
 import probatio as vol
-from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
+from homeassistant.config_entries import (
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlowWithReload,
+)
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import (
@@ -16,12 +21,21 @@ from .api import (
     normalize_origin,
 )
 from .const import CONF_ORIGIN, DOMAIN
+from .coordinator import CradlePointConfigEntry
 
 
 class CradlePointConfigFlow(ConfigFlow, domain=DOMAIN):
     """Configure or update credentials without changing router identity."""
 
     VERSION = 1
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(
+        config_entry: CradlePointConfigEntry,
+    ) -> CradlePointOptionsFlow:
+        """Provide explicit GPS privacy consent."""
+        return CradlePointOptionsFlow()
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -111,3 +125,25 @@ class CradlePointConfigFlow(ConfigFlow, domain=DOMAIN):
             }
         )
         return self.async_show_form(step_id=step, data_schema=schema, errors=errors)
+
+
+class CradlePointOptionsFlow(OptionsFlowWithReload):
+    """Configure optional privacy-sensitive GPS polling."""
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Store GPS consent; default to no location requests."""
+        if user_input is not None:
+            return self.async_create_entry(data=user_input)
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        "gps_enabled",
+                        default=self.config_entry.options.get("gps_enabled", False),
+                    ): bool
+                }
+            ),
+        )

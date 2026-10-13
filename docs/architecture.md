@@ -4,20 +4,27 @@
 
 * **`api.py`** — Bounded asynchronous HTTP access through Home Assistant's
   injected session, origin validation, safe exception types, and normalized
-  product identity.
+  product identity, preferring documented product_info with 404-only legacy fallback.
+
+* **`telemetry.py`** — Frozen typed snapshots and allowlisted documentation-guided
+  firmware/WAN/GPS parsers, finite/range checks and reset-safe monotonic rates.
 
 * **`config_flow.py`** — User onboarding, duplicate prevention,
-  reauthentication, and reconfiguration. All submitted connections are
-  validated before persistent changes.
+  reauthentication, reconfiguration and default-off translated GPS consent.
+  All submitted connections are
+  validated before persistent changes. Home Assistant flow helpers schedule one
+  reload for connection changes and changed options, without an update listener.
 
-* **`coordinator.py`** — One shared local poll per router, identity checking,
-  availability and authentication-failure propagation.
+* **`coordinator.py`** — One shared identity-first local polling cycle per router,
+  independently available optional capabilities and
+  authentication-failure propagation. GPS is never requested without consent.
 
 * **`__init__.py`** — Typed config-entry runtime data, first refresh, platform
-  forwarding, unload and config-change reload lifecycle.
+  forwarding and unload lifecycle.
 
 * **`sensor.py`** — Serial-based device and sensor identity, product name, and
-  coordinator-backed availability. No entity makes independent HTTP requests.
+  coordinator-backed availability, dynamic WAN entity discovery, totals/rates
+  and opted-in location sensors. No entity makes independent HTTP requests.
 
 * **`diagnostics.py`** — Minimal, allowlisted diagnostic information, with no
   config-entry secrets or raw API payload export.

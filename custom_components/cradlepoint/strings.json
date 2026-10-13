@@ -42,11 +42,38 @@
       "reconfigure_successful": "The router connection was updated successfully."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Optional location telemetry",
+        "description": "GPS is off by default. Enabling it reads and stores precise coordinates in Home Assistant (including recorder history and backups). Disabling stops requests and unloads GPS entities; it does not delete existing history.",
+        "data": {"gps_enabled": "Enable GPS location telemetry"}
+      }
+    }
+  },
   "entity": {
     "sensor": {
       "product_name": {
         "name": "Product name"
-      }
+      },
+      "firmware": {"name": "NCOS version"},
+      "primary": {"name": "Primary WAN"},
+      "wan_state": {"name": "WAN connection state"},
+      "wan_connection": {"name": "WAN {wan} connection state"},
+      "wan_link": {"name": "WAN {wan} link state"},
+      "wan_transport": {"name": "WAN {wan} transport"},
+      "wan_received": {"name": "WAN {wan} received"},
+      "wan_sent": {"name": "WAN {wan} sent"},
+      "wan_received_rate": {"name": "WAN {wan} receive rate"},
+      "wan_sent_rate": {"name": "WAN {wan} send rate"},
+      "gps_lock": {"name": "GPS lock"},
+      "gps_age": {"name": "GPS fix age"},
+      "gps_latitude": {"name": "GPS latitude"},
+      "gps_longitude": {"name": "GPS longitude"},
+      "gps_altitude": {"name": "GPS altitude"},
+      "gps_speed": {"name": "GPS ground speed"},
+      "gps_heading": {"name": "GPS heading"},
+      "gps_satellites": {"name": "GPS satellites"}
     }
   }
 }

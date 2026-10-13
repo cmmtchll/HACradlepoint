@@ -1,4 +1,4 @@
-"""Read-only client for the documented NCOS product-information endpoint."""
+"""Bounded read-only client for documented local NCOS status endpoints."""
 
 import asyncio
 import ipaddress
@@ -22,6 +22,14 @@ class CannotConnect(CradlePointError):
 
 class InvalidResponse(CradlePointError):
     """The router returned an unsupported product response."""
+
+
+class UnsupportedEndpoint(InvalidResponse):
+    """The endpoint is absent or explicitly unsupported."""
+
+
+class EndpointNotFound(UnsupportedEndpoint):
+    """Only a missing identity endpoint permits legacy fallback."""
 
 
 def normalize_origin(value: str) -> str:
@@ -86,7 +94,7 @@ class ProductInfo:
 
 
 class CradlePointApi:
-    """Use a borrowed Home Assistant session to read router product information."""
+    """Use a borrowed Home Assistant session to read allowlisted status paths."""
 
     def __init__(
         self,
@@ -103,6 +111,32 @@ class CradlePointApi:
 
     async def async_get_product(self) -> ProductInfo:
         """Fetch and validate product information with verified TLS."""
+        try:
+            raw = await self.async_get("product_info")
+        except EndpointNotFound:
+            raw = await self.async_get("product")
+            legacy = True
+        else:
+            legacy = False
+        if not isinstance(raw, dict):
+            raise InvalidResponse("Invalid product data")
+        manufacturing = raw.get("manufacturing")
+        serial = (
+            raw.get("serial_number")
+            if legacy
+            else manufacturing.get("serial_num")
+            if isinstance(manufacturing, dict)
+            else None
+        )
+        product = raw.get("product_name")
+        if not isinstance(serial, str) or not serial.strip():
+            raise InvalidResponse("Missing serial number")
+        if not isinstance(product, str) or not product.strip():
+            raise InvalidResponse("Missing product name")
+        return ProductInfo(serial.strip(), product.strip())
+
+    async def async_get(self, path: str) -> object:
+        """Fetch one internal status path with bounded, verified transport."""
         if not self._username or not self._password:
             raise InvalidAuth("Username and password must be nonempty")
         try:
@@ -112,13 +146,17 @@ class CradlePointApi:
         try:
             async with asyncio.timeout(10):
                 async with self._session.get(
-                    f"{self._origin}/api/status/product",
+                    f"{self._origin}/api/status/{path}",
                     headers={"Authorization": authorization},
                     allow_redirects=False,
                     ssl=True,
                 ) as response:
                     if response.status in (401, 403):
                         raise InvalidAuth("Authentication rejected")
+                    if response.status == 404:
+                        raise EndpointNotFound("Endpoint missing")
+                    if response.status == 501:
+                        raise UnsupportedEndpoint("Endpoint unsupported")
                     if response.status != 200:
                         raise InvalidResponse("Unexpected HTTP response")
                     try:
@@ -129,13 +167,6 @@ class CradlePointApi:
             raise CannotConnect("Secure router connection failed") from None
         if not isinstance(payload, dict) or payload.get("success") is not True:
             raise InvalidResponse("Unsuccessful product response")
-        data = payload.get("data")
-        if not isinstance(data, dict):
-            raise InvalidResponse("Invalid product data")
-        serial = data.get("serial_number")
-        product = data.get("product_name")
-        if not isinstance(serial, str) or not serial.strip():
-            raise InvalidResponse("Missing serial number")
-        if not isinstance(product, str) or not product.strip():
-            raise InvalidResponse("Missing product name")
-        return ProductInfo(serial.strip(), product.strip())
+        if "data" not in payload:
+            raise InvalidResponse("Missing response data")
+        return payload["data"]

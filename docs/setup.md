@@ -12,7 +12,8 @@
   Configure a publicly trusted certificate or an appropriate private CA trust
   chain in the Home Assistant runtime; the integration cannot import a CA.
   A default self-signed router certificate will fail verification.
-* Local credentials permitted to read `/api/status/product`. Use the
+* Local credentials permitted to read `/api/status/product_info` and applicable
+  optional status endpoints (or the legacy `/api/status/product`). Use the
   least-privileged account supported by your router's NCOS release.
 
 ## Installation and onboarding
@@ -43,6 +44,15 @@ There are no YAML configuration parameters or options for polling or TLS.
 Polling is fixed at 60 seconds with a bounded request timeout. The setup flow
 tests the endpoint and requires a product name and serial number before it
 creates an entry. The serial prevents configuring the same router twice.
+
+### GPS telemetry (Configure option, default off)
+
+Open the configured entry's **Configure** dialog and enable **GPS location
+telemetry** only if you consent to precise location becoming available to
+Home Assistant and its history/backups. No GPS request is made while disabled.
+Saving options reloads the entry. Disabling unloads location entities and stops
+GPS reads, but does not erase historical states or backups.
+See [GPS freshness and units](features.md#gps-consent-and-freshness).
 
 ## Changing configuration
 
