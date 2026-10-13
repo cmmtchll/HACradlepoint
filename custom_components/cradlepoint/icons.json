@@ -1,0 +1,9 @@
+{
+  "entity": {
+    "sensor": {
+      "product_name": {
+        "default": "mdi:router-network"
+      }
+    }
+  }
+}

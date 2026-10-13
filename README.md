@@ -1,2 +1,105 @@
-# HACradlepoint
-Home Assistant custom integration for Cradlepoint Routers.
+# CradlePoint for Home Assistant
+
+[![Validate](https://github.com/cmmtchll/HACradlepoint/actions/workflows/validate.yml/badge.svg)](https://github.com/cmmtchll/HACradlepoint/actions/workflows/validate.yml)
+
+An **experimental, read-only** custom integration for CradlePoint routers using
+the router's local NetCloud OS (NCOS) API. This repository follows
+[HAVRV](https://github.com/cmmtchll/HAVRV)'s async integration conventions,
+documentation, strict typing, coverage gates, and evidence-based quality tracking.
+It is not affiliated with Ericsson Enterprise Wireless Solutions.
+
+## Implemented foundation
+
+- UI setup, serial-number-based duplicate prevention, reauthentication, and
+  reconfiguration without changing router identity.
+- One router device and a diagnostic **Product name** sensor.
+- Local HTTPS polling every 60 seconds, connection validation at setup, and
+  unavailable/recovery handling.
+- Minimal diagnostics that do not export credentials, router addresses, serial
+  numbers, or raw API responses.
+- Ruff, strict mypy, pytest with at least **96% integration coverage** and
+  **100% config-flow coverage**, HACS validation, hassfest, and a complete
+  Bronze-through-Platinum checklist audit.
+
+**No hardware/model/firmware combination has been verified yet.** Tests use
+synthetic API responses. A router must provide the documented NCOS
+`GET /api/status/product` endpoint with `success: true` and nonempty
+`data.serial_number` and `data.product_name`. WAN state, cellular signal,
+traffic counters, GPS, reboot controls, NetCloud cloud access, and automatic
+discovery are **not implemented**.
+
+## Installation
+
+Requires Home Assistant **2026.10.1 or later**; development is tested against
+Core 2026.10.1 on Python 3.14. This repository is not in the default HACS catalog
+and does not currently publish release assets.
+
+### HACS custom repository
+
+1. In HACS, open **Custom repositories**.
+2. Add `https://github.com/cmmtchll/HACradlepoint` with category **Integration**.
+3. Download **CradlePoint** and restart Home Assistant.
+4. Follow [setup](docs/setup.rst).
+
+### Manual
+
+1. Download this repository and copy `custom_components/cradlepoint` into
+   your Home Assistant configuration directory's `custom_components/`.
+2. Restart Home Assistant.
+3. Open **Settings → Devices & services → Add integration → CradlePoint**.
+4. Enter the router's HTTPS origin and local API username/password.
+
+The router must have a trusted HTTPS certificate matching the configured
+hostname. There is **no HTTP mode or TLS-verification bypass**. See the
+[security guide](docs/security.rst) before entering credentials.
+
+## Configuration and removal
+
+The router URL, username, and password are configured through the UI, not YAML.
+The polling interval is fixed at 60 seconds. Use **Reconfigure** to update the
+address or credentials for the same router; authentication failures prompt
+reauthentication. See [all configuration parameters](docs/setup.rst).
+
+To remove the integration, delete its entry under **Settings → Devices &
+services**. Home Assistant unloads its entities and stops polling. Remove the
+download from HACS (or delete its component directory) and restart to uninstall.
+Deleting the integration does not change the router. Revoke unused router
+credentials and protect Home Assistant backups, which may retain configuration.
+
+## Documentation
+
+- [Setup and configuration](docs/setup.rst)
+- [Supported functions, limitations, and examples](docs/features.rst)
+- [Troubleshooting](docs/troubleshooting.rst)
+- [Security and API contract](docs/security.rst)
+- [Architecture](docs/architecture.rst)
+- [Contributing and local checks](CONTRIBUTING.rst)
+- [Quality scale / medallion status](quality_scale.rst)
+- [Changelog](CHANGELOG.rst)
+
+## Quality status
+
+Bronze, Silver, Gold, and Platinum are **targets, not awarded medallions**.
+The checklist records all 54 official rules with evidence or explicit gaps.
+A green checklist audit validates tracking integrity; it does not prove
+device compatibility or award a tier. Branding, discovery assessment, repairs,
+and real-router verification remain open. See [quality status](quality_scale.rst).
+
+## Development
+
+Use Python `>=3.14.2,<3.15`, then:
+
+```sh
+python -m venv .venv
+. .venv/bin/activate
+python -m pip install -e ".[test]"
+ruff check .
+ruff format --check .
+mypy
+pytest
+python -m coverage report --include=custom_components/cradlepoint/config_flow.py --fail-under=100
+python scripts/quality_scale_audit.py
+```
+
+See [contributing](CONTRIBUTING.rst) for CI expectations and agent guidance.
+Released under the [MIT license](LICENSE).

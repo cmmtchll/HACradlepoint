@@ -1,0 +1,23 @@
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      home-assistant:
+        patterns:
+          - homeassistant
+          - pytest-homeassistant-custom-component
+      development-tools:
+        patterns:
+          - ruff
+          - mypy
+          - pytest-cov
+          - PyYAML
+          - types-PyYAML
+          - setuptools
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
