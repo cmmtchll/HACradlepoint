@@ -39,7 +39,7 @@ and does not currently publish release assets.
 1. In HACS, open **Custom repositories**.
 2. Add `https://github.com/cmmtchll/HACradlepoint` with category **Integration**.
 3. Download **CradlePoint** and restart Home Assistant.
-4. Follow [setup](docs/setup.rst).
+4. Follow [setup](docs/setup.md).
 
 ### Manual
 
@@ -51,14 +51,14 @@ and does not currently publish release assets.
 
 The router must have a trusted HTTPS certificate matching the configured
 hostname. There is **no HTTP mode or TLS-verification bypass**. See the
-[security guide](docs/security.rst) before entering credentials.
+[security guide](docs/security.md) before entering credentials.
 
 ## Configuration and removal
 
 The router URL, username, and password are configured through the UI, not YAML.
 The polling interval is fixed at 60 seconds. Use **Reconfigure** to update the
 address or credentials for the same router; authentication failures prompt
-reauthentication. See [all configuration parameters](docs/setup.rst).
+reauthentication. See [all configuration parameters](docs/setup.md).
 
 To remove the integration, delete its entry under **Settings → Devices &
 services**. Home Assistant unloads its entities and stops polling. Remove the
@@ -68,14 +68,14 @@ credentials and protect Home Assistant backups, which may retain configuration.
 
 ## Documentation
 
-- [Setup and configuration](docs/setup.rst)
-- [Supported functions, limitations, and examples](docs/features.rst)
-- [Troubleshooting](docs/troubleshooting.rst)
-- [Security and API contract](docs/security.rst)
-- [Architecture](docs/architecture.rst)
-- [Contributing and local checks](CONTRIBUTING.rst)
-- [Quality scale / medallion status](quality_scale.rst)
-- [Changelog](CHANGELOG.rst)
+- [Setup and configuration](docs/setup.md)
+- [Supported functions, limitations, and examples](docs/features.md)
+- [Troubleshooting](docs/troubleshooting.md)
+- [Security and API contract](docs/security.md)
+- [Architecture](docs/architecture.md)
+- [Contributing and local checks](CONTRIBUTING.md)
+- [Quality scale / medallion status](QUALITY_SCALE.md)
+- [Changelog](CHANGELOG.md)
 
 ## Quality status
 
@@ -83,7 +83,7 @@ Bronze, Silver, Gold, and Platinum are **targets, not awarded medallions**.
 The checklist records all 54 official rules with evidence or explicit gaps.
 A green checklist audit validates tracking integrity; it does not prove
 device compatibility or award a tier. Branding, discovery assessment, repairs,
-and real-router verification remain open. See [quality status](quality_scale.rst).
+and real-router verification remain open. See [quality status](QUALITY_SCALE.md).
 
 ## Development
 
@@ -101,5 +101,5 @@ python -m coverage report --include=custom_components/cradlepoint/config_flow.py
 python scripts/quality_scale_audit.py
 ```
 
-See [contributing](CONTRIBUTING.rst) for CI expectations and agent guidance.
+See [contributing](CONTRIBUTING.md) for CI expectations and agent guidance.
 Released under the [MIT license](LICENSE).
