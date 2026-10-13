@@ -38,7 +38,7 @@ Entries are unique by serial, not by hostname. Reconfiguration and
 reauthentication cannot substitute another physical router. Add a new entry
 for a replacement, and remove the old entry if no longer needed.
 
-## Sensor unavailable-
+## Sensor unavailable
 
 The coordinator marks the entity unavailable after failed updates and retries
 on its normal polling schedule. Correct the router/network/certificate issue,

@@ -49,7 +49,7 @@ actions:
       message: Check the router, credentials, certificate, and local network.
 ```
 
-## Known limitations and future scope-
+## Known limitations and future scope
 
 WAN connectivity, modem/SIM details, cellular signal, traffic counters, uptime,
 GPS, NetCloud cloud APIs, automatic discovery, and write controls are not
