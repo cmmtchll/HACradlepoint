@@ -7,6 +7,9 @@ The client uses HTTP Basic authentication to the explicitly configured origin;
 it does not follow redirects or accept credentials embedded in a URL.
 No HTTP fallback, SSL bypass, cloud API key, write operation, or remote shell
 is included. Router credentials must never be stored in repository files or CI.
+DHCP discovery is unauthenticated network metadata and only prefills the address;
+the user must provide credentials, and the certificate must still validate for
+the selected HTTPS origin.
 
 Passwords are stored by Home Assistant in its config-entry storage, not an
 external secret manager. Protect that storage and backups, restrict account
