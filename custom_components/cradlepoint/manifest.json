@@ -3,11 +3,11 @@
   "name": "CradlePoint",
   "codeowners": ["@cmmtchll"],
   "config_flow": true,
-  "documentation": "https://github.com/cmmtchll/HACradlepoint",
   "dhcp": [
     {"macaddress": "003044*"},
     {"macaddress": "00E01C*"}
   ],
+  "documentation": "https://github.com/cmmtchll/HACradlepoint",
   "integration_type": "device",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/cmmtchll/HACradlepoint/issues",

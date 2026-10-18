@@ -70,7 +70,8 @@ def test_repository_assessment() -> None:
     """Validate real evidence without claiming unfinished external requirements."""
     root = Path(__file__).resolve().parents[1]
     result = audit(root / "custom_components/cradlepoint/quality_scale.yaml", root)
-    for rule in ("brands", "discovery", "discovery-update-info", "repair-issues"):
+    assert result["discovery"]["status"] == "done"
+    for rule in ("brands", "discovery-update-info", "repair-issues"):
         assert result[rule]["status"] == "todo"
     assert "**bronze: NOT READY**" in render(result)
 

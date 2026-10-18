@@ -1,7 +1,7 @@
 """Validated UI configuration for CradlePoint routers."""
 
-from collections.abc import Mapping
 import ipaddress
+from collections.abc import Mapping
 from typing import Any
 
 import probatio as vol

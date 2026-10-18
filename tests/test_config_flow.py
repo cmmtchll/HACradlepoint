@@ -2,7 +2,6 @@
 
 from unittest.mock import AsyncMock, patch
 
-import probatio as vol
 import pytest
 from homeassistant.config_entries import (
     SOURCE_DHCP,
