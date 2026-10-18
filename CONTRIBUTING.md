@@ -69,6 +69,10 @@ After the first CI run, configure a repository ruleset/branch protection to
 require `Lint and types`, `Tests and quality scale`, `HACS validation`,
 and `Home Assistant validation` plus review before merge. These GitHub
 settings are administrative actions, not applied automatically by this scaffold.
+The upstream HACS validator requires a publicly accessible repository and
+nonempty repository topics. Publication is an owner decision; never change
+visibility automatically or weaken the HACS gate to accommodate a private
+repository. Missing raw-file access can appear as misleading manifest errors.
 Enable vulnerability alerts and review Dependabot proposals rather than
 automatically merging dependency changes.
 

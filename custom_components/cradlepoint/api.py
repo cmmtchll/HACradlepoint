@@ -2,10 +2,84 @@
 
 import asyncio
 import ipaddress
+import json
+import zlib
 from dataclasses import dataclass
 from urllib.parse import urlsplit
 
 import aiohttp
+
+# HA states have a 255-character limit; identity uses the same conservative bound.
+MAX_STATE_LENGTH = 255
+# Allow detailed multi-modem trees; bound both wire and decompressed body bytes.
+MAX_RESPONSE_BYTES = 4 * 1024 * 1024
+RESPONSE_CHUNK_BYTES = 64 * 1024
+MAX_JSON_DEPTH = 64
+
+
+def _json_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    """Reject duplicate members instead of accepting ambiguous router identity."""
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("Duplicate JSON member")
+        result[key] = value
+    return result
+
+
+def _check_json_depth(body: str) -> None:
+    """Bound container nesting before invoking the recursive JSON decoder."""
+    depth = 0
+    quoted = escaped = False
+    for character in body:
+        if quoted:
+            if escaped:
+                escaped = False
+            elif character == "\\":
+                escaped = True
+            elif character == '"':
+                quoted = False
+        elif character == '"':
+            quoted = True
+        elif character in "[{":
+            depth += 1
+            if depth > MAX_JSON_DEPTH:
+                raise ValueError("Excessive JSON nesting")
+        elif character in "]}":
+            depth -= 1
+
+
+async def _read_body(response: aiohttp.ClientResponse) -> bytearray:
+    """Bound wire bytes and incremental decompression before allocating JSON."""
+    encoding = response.headers.get("Content-Encoding", "identity").strip().lower()
+    if encoding not in ("identity", "gzip", "deflate"):
+        raise InvalidResponse("Unsupported response encoding")
+    decompressor = (
+        zlib.decompressobj(
+            16 + zlib.MAX_WBITS if encoding == "gzip" else zlib.MAX_WBITS
+        )
+        if encoding != "identity"
+        else None
+    )
+    body = bytearray()
+    received = 0
+    while chunk := await response.content.read(
+        min(RESPONSE_CHUNK_BYTES, MAX_RESPONSE_BYTES - received + 1)
+    ):
+        received += len(chunk)
+        if received > MAX_RESPONSE_BYTES:
+            raise InvalidResponse("Response exceeds size limit")
+        decoded = (
+            decompressor.decompress(chunk, MAX_RESPONSE_BYTES - len(body) + 1)
+            if decompressor is not None
+            else chunk
+        )
+        if len(body) + len(decoded) > MAX_RESPONSE_BYTES:
+            raise InvalidResponse("Response exceeds size limit")
+        body.extend(decoded)
+    if decompressor is not None and (not decompressor.eof or decompressor.unused_data):
+        raise InvalidResponse("Invalid compressed response")
+    return body
 
 
 class CradlePointError(Exception):
@@ -129,9 +203,17 @@ class CradlePointApi:
             else None
         )
         product = raw.get("product_name")
-        if not isinstance(serial, str) or not serial.strip():
+        if (
+            not isinstance(serial, str)
+            or not serial.strip()
+            or len(serial.strip()) > MAX_STATE_LENGTH
+        ):
             raise InvalidResponse("Missing serial number")
-        if not isinstance(product, str) or not product.strip():
+        if (
+            not isinstance(product, str)
+            or not product.strip()
+            or len(product.strip()) > MAX_STATE_LENGTH
+        ):
             raise InvalidResponse("Missing product name")
         return ProductInfo(serial.strip(), product.strip())
 
@@ -147,9 +229,13 @@ class CradlePointApi:
             async with asyncio.timeout(10):
                 async with self._session.get(
                     f"{self._origin}/api/status/{path}",
-                    headers={"Authorization": authorization},
+                    headers={
+                        "Authorization": authorization,
+                        "Accept-Encoding": "gzip, deflate",
+                    },
                     allow_redirects=False,
                     ssl=True,
+                    auto_decompress=False,
                 ) as response:
                     if response.status in (401, 403):
                         raise InvalidAuth("Authentication rejected")
@@ -159,9 +245,17 @@ class CradlePointApi:
                         raise UnsupportedEndpoint("Endpoint unsupported")
                     if response.status != 200:
                         raise InvalidResponse("Unexpected HTTP response")
+                    if response.content_type != "application/json" and not (
+                        response.content_type.startswith("application/")
+                        and response.content_type.endswith("+json")
+                    ):
+                        raise InvalidResponse("Invalid JSON response")
                     try:
-                        payload = await response.json()
-                    except (ValueError, aiohttp.ContentTypeError):
+                        body = await _read_body(response)
+                        encoded = body.decode("utf-8-sig")
+                        _check_json_depth(encoded)
+                        payload = json.loads(encoded, object_pairs_hook=_json_object)
+                    except (ValueError, UnicodeError, RecursionError, zlib.error):
                         raise InvalidResponse("Invalid JSON response") from None
         except (aiohttp.ClientError, TimeoutError):
             raise CannotConnect("Secure router connection failed") from None

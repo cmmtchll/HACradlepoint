@@ -20,6 +20,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: CradlePointConfigEntry) 
         entry.data[CONF_PASSWORD],
     )
     coordinator = CradlePointCoordinator(hass, entry, api)
+    if coordinator.gps is not None:
+        await coordinator.gps.async_refresh()
     await coordinator.async_config_entry_first_refresh()
     entry.runtime_data = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
@@ -30,4 +32,11 @@ async def async_unload_entry(
     hass: HomeAssistant, entry: CradlePointConfigEntry
 ) -> bool:
     """Unload the integration's platforms."""
-    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    coordinator = entry.runtime_data
+    if coordinator.gps is not None and not coordinator.gps.consent:
+        coordinator.gps.async_set_updated_data(None)
+        await coordinator.gps.async_shutdown()
+    unloaded = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    if unloaded and coordinator.gps is not None:
+        await coordinator.gps.async_shutdown()
+    return unloaded

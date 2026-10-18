@@ -19,6 +19,10 @@ from custom_components.cradlepoint.api import (
 )
 from custom_components.cradlepoint.const import DOMAIN
 from custom_components.cradlepoint.diagnostics import async_get_config_entry_diagnostics
+from custom_components.cradlepoint.sensor import (
+    MAX_DISCOVERED_WAN_DEVICES,
+    WAN_SENSORS,
+)
 
 
 def readings(**changes: object) -> dict[str, object]:
@@ -110,6 +114,73 @@ async def test_optional_and_dynamic_wan(
     assert await hass.config_entries.async_unload(entry.entry_id)
 
 
+async def test_wan_discovery_budget_survives_key_churn_and_reload(
+    hass: HomeAssistant, product_api: AsyncMock, optional_api: AsyncMock
+) -> None:
+    """Bound cumulative registry growth, without recycling removed key identities."""
+    values = readings()
+    values["wan/devices"] = {}
+    mock_readings(optional_api, values)
+    entry = add_entry(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    registry = er.async_get(hass)
+    device = wan_payload()["device-a"]
+    for batch in range(6):
+        values["wan/devices"] = {
+            f"device-{index}": device for index in range(batch * 16, (batch + 1) * 16)
+        }
+        await entry.runtime_data.async_refresh()
+        await hass.async_block_till_done()
+        count = min((batch + 1) * 16, MAX_DISCOVERED_WAN_DEVICES)
+        assert len(er.async_entries_for_config_entry(registry, entry.entry_id)) == (
+            4 + count * len(WAN_SENSORS)
+        )
+    retained_id = entity_id(hass, "device-0_wan_received")
+    assert sensor_state(hass, "device-0_wan_received") == "unavailable"
+    assert (
+        registry.async_get_entity_id(
+            "sensor", DOMAIN, "SERIAL-001_device-64_wan_received"
+        )
+        is None
+    )
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert len(er.async_entries_for_config_entry(registry, entry.entry_id)) == (
+        4 + MAX_DISCOVERED_WAN_DEVICES * len(WAN_SENSORS)
+    )
+    assert (
+        registry.async_get_entity_id(
+            "sensor", DOMAIN, "SERIAL-001_device-80_wan_received"
+        )
+        is None
+    )
+    values["wan/devices"] = {"device-0": device}
+    await entry.runtime_data.async_refresh()
+    await hass.async_block_till_done()
+    assert entity_id(hass, "device-0_wan_received") == retained_id
+    assert sensor_state(hass, "device-0_wan_received") == "100"
+    assert await hass.config_entries.async_unload(entry.entry_id)
+
+
+async def test_wan_discovery_ignores_other_registry_identity(
+    hass: HomeAssistant, product_api: AsyncMock, optional_api: AsyncMock
+) -> None:
+    """Unrelated legacy registry IDs cannot reserve another router's WAN keys."""
+    mock_readings(optional_api, readings())
+    entry = add_entry(hass)
+    er.async_get(hass).async_get_or_create(
+        "sensor",
+        DOMAIN,
+        "OTHER_device-a_wan_received",
+        config_entry=entry,
+    )
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert sensor_state(hass, "device-a_wan_received") == "100"
+
+
 @pytest.mark.parametrize(
     "failure", [UnsupportedEndpoint(), CannotConnect(), InvalidResponse(), []]
 )
@@ -153,9 +224,12 @@ async def test_optional_authentication(
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     values[endpoint] = InvalidAuth()
-    await entry.runtime_data.async_refresh()
+    coordinator = entry.runtime_data.gps if endpoint == "gps" else entry.runtime_data
+    assert coordinator is not None
+    await coordinator.async_refresh()
     await hass.async_block_till_done()
-    assert sensor_state(hass, "product_name") == "unavailable"
+    suffix = "gps_latitude" if endpoint == "gps" else "product_name"
+    assert sensor_state(hass, suffix) == "unavailable"
     assert any(
         flow["context"]["source"] == "reauth"
         for flow in hass.config_entries.flow.async_progress()
@@ -237,17 +311,19 @@ async def test_gps_options_reload_and_privacy(
     assert sensor_state(hass, "gps_lock") == "True"
     diagnostics = await async_get_config_entry_diagnostics(hass, entry)
     assert set(diagnostics) == {"product_name", "last_update_success"}
+    gps = entry.runtime_data.gps
+    assert gps is not None
     values["gps"] = gps_payload(lock=False)
-    await entry.runtime_data.async_refresh()
+    await gps.async_refresh()
     await hass.async_block_till_done()
     assert sensor_state(hass, "gps_latitude") == "unavailable"
     assert sensor_state(hass, "gps_lock") == "False"
     values["gps"] = CannotConnect()
-    await entry.runtime_data.async_refresh()
+    await gps.async_refresh()
     await hass.async_block_till_done()
     assert sensor_state(hass, "gps_lock") == "unavailable"
     values["gps"] = gps_payload()
-    await entry.runtime_data.async_refresh()
+    await gps.async_refresh()
     await hass.async_block_till_done()
     assert sensor_state(hass, "gps_latitude") == "0.0"
     result = await hass.config_entries.options.async_init(entry.entry_id)
@@ -278,7 +354,7 @@ async def test_gps_options_reload_and_privacy(
 
 @pytest.mark.parametrize(
     "slow_endpoint",
-    ["fw_info", "wan/primary_device", "wan/connection_state", "gps"],
+    ["fw_info", "wan/primary_device", "wan/connection_state"],
 )
 async def test_wan_sample_time_ignores_other_endpoint_latency(
     hass: HomeAssistant,

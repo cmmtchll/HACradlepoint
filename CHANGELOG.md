@@ -2,6 +2,13 @@
 
 ## 0.1.0 — unreleased
 
+* Independent priority GPS polling, live consent enforcement and position
+  freshness deadlines, with lifecycle and failure-combination regression tests.
+* Cancel/drain failed concurrent polls, bound response parsing and WAN discovery,
+  isolate malformed WAN devices, and prevent rejected-router flows from
+  reserving another router's identity.
+* Clarify HACS publication prerequisites and non-atomic vendor identity checks.
+
 * Documentation-guided experimental product_info identity with 404-only legacy
   fallback, NCOS version, WAN connection/primary state and dynamic per-WAN
   counters, link states and reset-safe monotonic average rates.

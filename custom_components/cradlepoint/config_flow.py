@@ -118,7 +118,6 @@ class CradlePointConfigFlow(ConfigFlow, domain=DOMAIN):
                 except InvalidResponse:
                     errors["base"] = "invalid_response"
                 else:
-                    await self.async_set_unique_id(product.serial_number)
                     if entry is not None:
                         if product.serial_number != entry.unique_id:
                             errors["base"] = "wrong_device"
@@ -133,6 +132,7 @@ class CradlePointConfigFlow(ConfigFlow, domain=DOMAIN):
                                 ),
                             )
                     else:
+                        await self.async_set_unique_id(product.serial_number)
                         self._abort_if_unique_id_configured()
                         return self.async_create_entry(
                             title=product.product_name, data=data

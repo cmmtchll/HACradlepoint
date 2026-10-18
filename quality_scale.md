@@ -59,6 +59,8 @@ Documentation-guided firmware/WAN and opted-in GPS now use frozen normalized
 snapshots. `tests/test_optional.py` covers optional failures/authentication,
 dynamic WAN entities and GPS consent/reload; `tests/test_telemetry.py` covers
 finite/range checks, unknown readings, privacy allowlists and reset-safe rates.
+`tests/test_gps.py` exercises the independent priority GPS stream and lifecycle;
+`tests/test_input_bounds.py` exercises bounded decoding and malformed input.
 GPS does not enter diagnostics or logs, but opted-in entity states/history are
 privacy-sensitive. NCOS 6.x/7.x and IBR1700-600M remain experimental, not certified.
 Existing open quality gaps are not promoted by synthetic fixtures or coverage.

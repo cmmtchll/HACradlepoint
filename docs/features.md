@@ -23,9 +23,10 @@ Assistant must see the router request a DHCP lease, so not every network
 topology/router mode will produce a discovery. The router still must pass the
 same verified-HTTPS product identity check as manual setup.
 One shared 60-second coordinator cycle checks identity first, then requests
-optional capabilities. Requests use verified HTTPS, no redirects and a 10-second
-timeout each. The four non-GPS optional requests run concurrently; opted-in GPS
-adds one bounded request. No entity makes its own request.
+firmware/WAN capabilities concurrently. Enabled GPS uses a separate identity-first
+60-second coordinator, so unrelated requests cannot delay its scheduled updates
+or entity publication. Requests use verified HTTPS, no redirects and a 10-second
+timeout each. No entity makes its own request.
 
 | Sensors | Documented source | Units/behavior |
 | --- | --- | --- |
@@ -43,6 +44,13 @@ New WAN keys discovered after setup create stable serial-plus-device-key entitie
 Removed devices become unavailable without deleting registry/history identity;
 returning keys reuse their entities. Key prefixes are never used to infer
 transport. The client does not retain unrecognized fields or export raw attributes.
+Malformed individual devices are omitted without hiding healthy devices. Invalid
+top-level trees or more than 64 WAN members reject the WAN capability. Discovery
+admits at most 64 WAN identities per entry, reserving that budget using existing
+registry identities across reloads. Returning admitted keys reuse their entities;
+new keys beyond the budget are not added. These are defensive integration limits,
+not a hardware compatibility statement. Review unexpected key churn before
+removing obsolete registry records to release their reserved budget.
 
 The first rate is unknown. A decreasing counter/reset, missing reading, missing
 device, failed WAN read or failed router poll resets the rate baseline: no negative
@@ -55,25 +63,36 @@ Optional HTTP 404/501, network and schema errors make the affected capability
 unavailable while product/other capabilities continue. Missing individual
 per-WAN readings remain unknown. Endpoint capabilities are retried on later
 cycles, permitting recovery or late enablement. Any endpoint's 401/403 triggers
-reauthentication. Failed required product reads or changed serial make every
-entity unavailable; another router's telemetry is never accepted.
+reauthentication. Failed required product reads or changed serial make the
+affected stream's entities unavailable; GPS performs its own identity check
+independently of router telemetry. Identity is validated before requests, not
+atomically across separate vendor endpoints; mid-poll address failover remains
+an architectural limitation.
 
 ### GPS consent and freshness
 
 GPS is off by default: no GPS request or GPS entity is created until enabled
 through the translated **Configure** options flow. Options changes reload the
-entry. Disabling stops requests and unloads GPS entities; existing recorder
-history, entity registry records and backups are not erased.
+entry. Disabling immediately redacts GPS states and stops further GPS requests,
+including if the subsequent unload fails; successful reload unloads GPS entities.
+An in-flight result cannot publish coordinates after consent is revoked.
+Existing recorder history, entity registry records and backups are not erased.
 
-Coordinates require a locked fix with a finite, nonnegative age **at most 120
-seconds at sampling**. This is an integration freshness policy, not a vendor
-guarantee. Unlocked, missing-age or older fixes have unavailable position/motion
+Coordinates require a locked fix with a finite, nonnegative age. Reported age
+plus elapsed request/processing time must remain **below 120 seconds**.
+Positions expire at that deadline even if the next request stalls. This is an
+integration freshness policy, not a vendor guarantee.
+Unlocked, missing-age or older fixes have unavailable position/motion
 readings; `lastpos` is deliberately ignored. Numeric/string DMS components are
 validated and converted with South/West signs, including negative zero.
 Latitude/longitude ranges, nonnegative speed, heading [0,360), integer satellite
 counts and finite values are checked. Missing data is never synthesized as zero;
 a real zero in a valid fresh locked fix remains valid. Location is updated on the
-60-second schedule, not continuously or for navigation/safety applications.
+independent 60-second schedule, not continuously or for navigation/safety
+applications. GPS request/schema failures make GPS unavailable and are retried;
+lock recovery restores valid positions without restarting the integration.
+LAN GPS/NMEA streaming and dual-source failover are not implemented pending
+hardware and source-trust verification.
 
 The API being reachable is not evidence that the WAN has internet access.
 No integration-specific service actions, triggers, or conditions are provided.

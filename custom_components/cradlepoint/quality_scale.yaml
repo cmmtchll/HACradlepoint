@@ -4,7 +4,7 @@ rules:
     comment: This initial read-only integration registers no service actions.
   appropriate-polling:
     status: done
-    comment: custom_components/cradlepoint/const.py sets a 60-second coordinator interval; tests/test_init.py verifies scheduled polling without claiming hardware verification.
+    comment: custom_components/cradlepoint/const.py sets a 60-second interval; tests/test_init.py and tests/test_gps.py verify shared router polling and independent GPS scheduling without claiming hardware verification.
   brands:
     status: todo
     comment: Submit and verify the integration assets in the Home Assistant brands repository.
@@ -40,7 +40,7 @@ rules:
     comment: This integration provides no custom automation triggers.
   entity-event-setup:
     status: done
-    comment: custom_components/cradlepoint/sensor.py uses CoordinatorEntity lifecycle subscriptions; tests/test_init.py verifies updates stop after unloading.
+    comment: custom_components/cradlepoint/sensor.py uses CoordinatorEntity lifecycle subscriptions; tests/test_init.py and tests/test_gps.py verify polling and GPS freshness callbacks stop after unloading.
   entity-unique-id:
     status: done
     comment: custom_components/cradlepoint/sensor.py defines serial-based entity identifiers; tests/test_init.py verifies their registry identity.
@@ -73,7 +73,7 @@ rules:
     comment: docs/setup.md documents required router credentials and installation parameters.
   entity-unavailable:
     status: done
-    comment: custom_components/cradlepoint/sensor.py inherits coordinator availability; tests/test_init.py verifies failure, wrong-router rejection, and successful recovery.
+    comment: custom_components/cradlepoint/sensor.py inherits per-stream coordinator availability; tests/test_init.py and tests/test_gps.py verify failures, wrong-router rejection, GPS freshness expiry and recovery.
   integration-owner:
     status: done
     comment: custom_components/cradlepoint/manifest.json declares the integration codeowner and CONTRIBUTING.md documents maintainer reporting responsibilities.
@@ -88,7 +88,7 @@ rules:
     comment: custom_components/cradlepoint/config_flow.py implements same-router reauthentication; tests/test_config_flow.py and tests/test_init.py verify updates and authentication failures.
   test-coverage:
     status: done
-    comment: tests/test_api.py, tests/test_config_flow.py, tests/test_init.py, tests/test_optional.py and tests/test_telemetry.py exercise all implemented integration statements with 100 percent integration and flow coverage; pyproject.toml retains the coverage gates.
+    comment: tests/test_api.py, tests/test_config_flow.py, tests/test_init.py, tests/test_optional.py, tests/test_telemetry.py, tests/test_gps.py and tests/test_input_bounds.py exercise transport, lifecycle, independent GPS, consent and malformed-input regressions; pyproject.toml retains at least 96 percent integration coverage and CI enforces 100 percent config-flow coverage.
   devices:
     status: done
     comment: custom_components/cradlepoint/sensor.py defines router device metadata; tests/test_init.py verifies stable identifiers, manufacturer, model, and serial.
