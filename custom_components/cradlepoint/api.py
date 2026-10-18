@@ -107,7 +107,7 @@ class CradlePointApi:
             raise InvalidAuth("Username and password must be nonempty")
         try:
             authorization = aiohttp.encode_basic_auth(self._username, self._password)
-        except (ValueError, UnicodeError):
+        except ValueError, UnicodeError:
             raise InvalidAuth("Invalid authentication credentials") from None
         try:
             async with asyncio.timeout(10):
@@ -123,9 +123,9 @@ class CradlePointApi:
                         raise InvalidResponse("Unexpected HTTP response")
                     try:
                         payload = await response.json()
-                    except (ValueError, aiohttp.ContentTypeError):
+                    except ValueError, aiohttp.ContentTypeError:
                         raise InvalidResponse("Invalid JSON response") from None
-        except (aiohttp.ClientError, TimeoutError):
+        except aiohttp.ClientError, TimeoutError:
             raise CannotConnect("Secure router connection failed") from None
         if not isinstance(payload, dict) or payload.get("success") is not True:
             raise InvalidResponse("Unsuccessful product response")
