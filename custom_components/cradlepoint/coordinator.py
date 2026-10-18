@@ -201,6 +201,10 @@ class CradlePointGpsCoordinator(DataUpdateCoordinator[GpsFix | None]):
     def _expire(self, _now: object) -> None:
         """Publish freshness loss without waiting for a network poll."""
         self._expiry = None
+        if self.data is not None:
+            self.data = GpsFix(
+                self.data.lock, self.data.age, satellites=self.data.satellites
+            )
         self.async_update_listeners()
 
     async def async_shutdown(self) -> None:

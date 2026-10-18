@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from freezegun.api import FrozenDateTimeFactory
 from homeassistant.core import HomeAssistant
+from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 from test_init import add_entry
@@ -51,6 +52,14 @@ async def test_scheduled_priority_gps(
     optional_api.side_effect = fetch
     refresh = asyncio.create_task(entry.runtime_data.async_refresh())
     await blocked.wait()
+    values["gps"] = gps_payload(latitude={"degree": "1", "minute": "0", "second": "0"})
+    freezer.tick(UPDATE_INTERVAL.total_seconds() + 1)
+    async_fire_time_changed(hass, dt_util.utcnow())
+    await updated.wait()
+    await hass.async_block_till_done()
+    assert not refresh.done()
+    assert sensor_state(hass, "gps_latitude") == "1.0"
+    updated.clear()
     values["gps"] = gps_payload(lock=False)
     freezer.tick(UPDATE_INTERVAL.total_seconds() + 1)
     async_fire_time_changed(hass, dt_util.utcnow())
@@ -101,6 +110,44 @@ async def test_gps_failure_recovery_and_identity(
     await gps.async_refresh()
     optional_api.assert_not_awaited()
     assert sensor_state(hass, "gps_latitude") == "unavailable"
+
+
+async def test_real_options_revocation_survives_failed_reload(
+    hass: HomeAssistant,
+    product_api: AsyncMock,
+    optional_api: AsyncMock,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """Real automatic reload failure cannot preserve GPS reads or publications."""
+    mock_readings(optional_api, readings())
+    entry = add_entry(hass)
+    hass.config_entries.async_update_entry(entry, options={"gps_enabled": True})
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    gps = entry.runtime_data.gps
+    assert gps is not None
+    flow = await hass.config_entries.options.async_init(entry.entry_id)
+    with patch.object(
+        hass.config_entries, "async_unload_platforms", return_value=False
+    ):
+        result = await hass.config_entries.options.async_configure(
+            flow["flow_id"], user_input={"gps_enabled": False}
+        )
+        assert result["type"] is FlowResultType.CREATE_ENTRY
+        await hass.async_block_till_done()
+    assert entry.options["gps_enabled"] is False
+    assert entry.runtime_data.gps is gps
+    assert sensor_state(hass, "gps_latitude") == "unavailable"
+    assert gps.data is None
+    optional_api.reset_mock()
+    for _ in range(2):
+        freezer.tick(UPDATE_INTERVAL.total_seconds() + 1)
+        async_fire_time_changed(hass, dt_util.utcnow())
+        await hass.async_block_till_done()
+        assert sensor_state(hass, "gps_latitude") == "unavailable"
+        assert gps.current_fix is None
+    assert not any(call.args == ("gps",) for call in optional_api.await_args_list)
+    assert not entry.update_listeners
 
 
 async def test_initial_gps_failure_does_not_block_router_setup(
@@ -314,6 +361,8 @@ async def test_freshness_expiry_during_blocked_poll(
     assert sensor_state(hass, "gps_latitude") == "unavailable"
     assert gps.current_fix is not None
     assert gps.current_fix.latitude is None
+    assert gps.data is not None
+    assert gps.data.latitude is None
     release.set()
     await refresh
     assert sensor_state(hass, "gps_latitude") == "unavailable"
