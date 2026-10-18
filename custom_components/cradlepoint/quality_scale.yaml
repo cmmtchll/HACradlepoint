@@ -96,8 +96,8 @@ rules:
     status: done
     comment: custom_components/cradlepoint/diagnostics.py allowlists product name and update success; tests/test_init.py confirms addresses, credentials, serials, and raw responses are excluded.
   discovery:
-    status: todo
-    comment: Automatic router discovery is not implemented in this initial release.
+    status: done
+    comment: custom_components/cradlepoint/manifest.json matches known CradlePoint DHCP MAC prefixes; custom_components/cradlepoint/config_flow.py prompts for credentials and validates serial identity, covered by tests/test_config_flow.py.
   discovery-update-info:
     status: todo
     comment: Discovery-driven connection updates are not implemented in this initial release.

@@ -10,6 +10,15 @@
           "password": "Password"
         }
       },
+      "dhcp_confirm": {
+        "title": "CradlePoint router discovered",
+        "description": "A CradlePoint device was detected on the local network. Confirm its HTTPS origin and enter local router credentials. DHCP discovery is not authentication; a valid, trusted TLS certificate is required.",
+        "data": {
+          "origin": "HTTPS origin",
+          "username": "Username",
+          "password": "Password"
+        }
+      },
       "reauth_confirm": {
         "title": "Reauthenticate with the router",
         "description": "Enter credentials for the same router. Its serial number must match the existing configuration.",

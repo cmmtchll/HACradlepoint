@@ -17,6 +17,11 @@ Synthetic fixtures are sufficient for development, not proof of hardware support
 ## Supported functions and updates
 
 One device is created for each configured serial number, independent of address.
+DHCP discovery recognizes the configured CradlePoint MAC prefixes and offers a
+credential form with the observed address prefilled. It is passive: Home
+Assistant must see the router request a DHCP lease, so not every network
+topology/router mode will produce a discovery. The router still must pass the
+same verified-HTTPS product identity check as manual setup.
 One shared 60-second coordinator cycle checks identity first, then requests
 optional capabilities. Requests use verified HTTPS, no redirects and a 10-second
 timeout each. The four non-GPS optional requests run concurrently; opted-in GPS
@@ -107,7 +112,7 @@ actions:
 ## Known limitations and future scope
 
 Modem/SIM identity/details, cellular signal, uptime, NetCloud cloud APIs,
-automatic router discovery and all write controls are deferred.
+discovery-driven address updates and all write controls are deferred.
 The vendor `/api/status/wwan` documentation calls device entry fields “varies”:
 no exact SSID/signal contract is established. It is not requested or guessed.
 Wi-Fi-as-WAN generic statistics/state work only if exposed in the documented WAN

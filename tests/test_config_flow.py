@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from homeassistant.config_entries import (
+    SOURCE_DHCP,
     SOURCE_REAUTH,
     SOURCE_RECONFIGURE,
     SOURCE_USER,
@@ -11,6 +12,7 @@ from homeassistant.config_entries import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.helpers.service_info.dhcp import DhcpServiceInfo
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.cradlepoint.api import (
@@ -42,6 +44,66 @@ async def test_user_flow(hass: HomeAssistant, product_api: AsyncMock) -> None:
     assert result["data"] == DATA
     assert result["result"].unique_id == "SERIAL-001"
     product_api.assert_awaited_once()
+
+
+async def test_dhcp_flow(hass: HomeAssistant, product_api: AsyncMock) -> None:
+    """Offer credentials form with the DHCP-discovered router address."""
+    discovery_info = DhcpServiceInfo(
+        ip="192.0.2.10",
+        hostname="router",
+        macaddress="003044000001",
+    )
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_DHCP}, data=discovery_info
+    )
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "dhcp_confirm"
+    schema = result["data_schema"]
+    assert schema({"username": "admin", "password": "secret"}) == {
+        "origin": "https://192.0.2.10",
+        "username": "admin",
+        "password": "secret",
+    }
+    with patch("custom_components.cradlepoint.async_setup_entry", return_value=True):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "origin": "https://192.0.2.10",
+                "username": "admin",
+                "password": "secret",
+            },
+        )
+        await hass.async_block_till_done()
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["result"].unique_id == "SERIAL-001"
+    assert result["data"]["origin"] == "https://192.0.2.10"
+    product_api.assert_awaited_once()
+
+
+async def test_dhcp_flow_duplicate_serial(
+    hass: HomeAssistant, product_api: AsyncMock
+) -> None:
+    """Reject discovered routers whose serial already has an entry."""
+    entry = MockConfigEntry(domain=DOMAIN, unique_id="SERIAL-001", data=DATA)
+    entry.add_to_hass(hass)
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": SOURCE_DHCP},
+        data=DhcpServiceInfo(
+            ip="192.0.2.10", hostname="router", macaddress="003044000001"
+        ),
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {
+            "origin": "https://192.0.2.10",
+            "username": "admin",
+            "password": "secret",
+        },
+    )
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "already_configured"
+    assert entry.data == DATA
 
 
 @pytest.mark.parametrize(

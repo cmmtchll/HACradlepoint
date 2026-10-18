@@ -22,6 +22,13 @@ Follow the HACS/manual instructions in the root README. Restart Home Assistant
 after installing the component, then choose **Settings → Devices & services →
 Add integration → CradlePoint**.
 
+Home Assistant may also show a discovered CradlePoint router when it observes
+the router request a DHCP lease and its MAC address matches a known CradlePoint
+prefix. Discovery prefills the HTTPS origin; you must still enter local API
+credentials and the router must have a trusted certificate matching that
+address. DHCP discovery is not authentication, and routers that do not request
+a lease visible to Home Assistant must be added manually.
+
 ## Configuration parameters
 
 ### Router URL

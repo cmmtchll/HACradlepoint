@@ -1,5 +1,6 @@
 """Validated UI configuration for CradlePoint routers."""
 
+import ipaddress
 from collections.abc import Mapping
 from typing import Any
 
@@ -12,6 +13,7 @@ from homeassistant.config_entries import (
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.service_info.dhcp import DhcpServiceInfo
 
 from .api import (
     CannotConnect,
@@ -28,6 +30,7 @@ class CradlePointConfigFlow(ConfigFlow, domain=DOMAIN):
     """Configure or update credentials without changing router identity."""
 
     VERSION = 1
+    _discovered_origin: str | None = None
 
     @staticmethod
     @callback
@@ -42,6 +45,25 @@ class CradlePointConfigFlow(ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         """Handle initial user configuration."""
         return await self._async_connection_step("user", user_input)
+
+    async def async_step_dhcp(
+        self, discovery_info: DhcpServiceInfo
+    ) -> ConfigFlowResult:
+        """Handle a router discovered from its DHCP MAC address."""
+        address = ipaddress.ip_address(discovery_info.ip)
+        host = f"[{address}]" if address.version == 6 else str(address)
+        self._discovered_origin = f"https://{host}"
+        await self.async_set_unique_id(discovery_info.macaddress)
+        self._abort_if_unique_id_configured()
+        return await self.async_step_dhcp_confirm()
+
+    async def async_step_dhcp_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Collect credentials for a router discovered via DHCP."""
+        return await self._async_connection_step(
+            "dhcp_confirm", user_input, self._discovered_origin
+        )
 
     async def async_step_reauth(
         self, entry_data: Mapping[str, Any]
@@ -62,7 +84,10 @@ class CradlePointConfigFlow(ConfigFlow, domain=DOMAIN):
         return await self._async_connection_step("reconfigure", user_input)
 
     async def _async_connection_step(
-        self, step: str, user_input: dict[str, Any] | None
+        self,
+        step: str,
+        user_input: dict[str, Any] | None,
+        default_origin: str | None = None,
     ) -> ConfigFlowResult:
         """Share secure connection validation between supported flow steps."""
         errors: dict[str, str] = {}
@@ -113,6 +138,8 @@ class CradlePointConfigFlow(ConfigFlow, domain=DOMAIN):
                             title=product.product_name, data=data
                         )
         defaults = user_input or (dict(entry.data) if entry else {})
+        if default_origin is not None and CONF_ORIGIN not in defaults:
+            defaults[CONF_ORIGIN] = default_origin
         schema = vol.Schema(
             {
                 vol.Required(

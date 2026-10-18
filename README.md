@@ -12,6 +12,8 @@ It is not affiliated with Ericsson Enterprise Wireless Solutions.
 
 - UI setup, serial-number-based duplicate prevention, reauthentication, and
   reconfiguration without changing router identity.
+- DHCP discovery for known CradlePoint MAC prefixes, with the detected HTTPS
+  address prefilled and local credentials entered by the user.
 - One router device, **Product name**, reported **NCOS version**, primary WAN
   and WAN connection state.
 - Dynamic per-WAN connection/link states, documented transport type, received/sent
@@ -34,8 +36,9 @@ the legacy `/api/status/product` contract. The IBR1700-600M and NCOS 6.x/7.x are
 experimental targets, not verified compatibility claims; optional endpoints are
 capability-detected, not guessed from a model/version. Wi-Fi-as-WAN can contribute
 generic WAN readings if present in that tree; SSID/signal schemas remain deferred.
-WAN state is **not Internet health**. Controls, cloud access and automatic router
-discovery are not implemented. See [contracts and limits](docs/features.md).
+WAN state is **not Internet health**. Controls and cloud access are not
+implemented. DHCP-based discovery depends on Home Assistant seeing the router
+request a lease on its network. See [contracts and limits](docs/features.md).
 
 ## Installation
 
