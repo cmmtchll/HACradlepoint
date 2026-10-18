@@ -1,6 +1,7 @@
 """Tests for secure API requests and strictly validated product responses."""
 
 import asyncio
+import json
 import ssl
 from unittest.mock import AsyncMock, MagicMock
 
@@ -78,7 +79,9 @@ def make_client(
 ) -> tuple[CradlePointApi, MagicMock, MagicMock]:
     """Build a transport mock while preserving aiohttp request semantics."""
     response = MagicMock(status=status)
-    response.json = AsyncMock(return_value=payload)
+    response.headers = {}
+    response.content_type = "application/json"
+    response.content.read = AsyncMock(side_effect=[json.dumps(payload).encode(), b""])
     context = MagicMock()
     context.__aenter__ = AsyncMock(return_value=response)
     context.__aexit__ = AsyncMock(return_value=False)
@@ -105,9 +108,13 @@ async def test_product_request() -> None:
     assert await api.async_get_product() == ProductInfo("SERIAL-001", "E300")
     session.get.assert_called_once_with(
         "https://router/api/status/product_info",
-        headers={"Authorization": aiohttp.encode_basic_auth("admin", "secret")},
+        headers={
+            "Authorization": aiohttp.encode_basic_auth("admin", "secret"),
+            "Accept-Encoding": "gzip, deflate",
+        },
         allow_redirects=False,
         ssl=True,
+        auto_decompress=False,
     )
     session.close.assert_not_called()
 
@@ -142,7 +149,8 @@ async def test_unicode_credentials() -> None:
     api = CradlePointApi(session, "https://router", "用户名", "密码")
     assert await api.async_get_product() == ProductInfo("SERIAL", "E300")
     assert session.get.call_args.kwargs["headers"] == {
-        "Authorization": aiohttp.encode_basic_auth("用户名", "密码")
+        "Authorization": aiohttp.encode_basic_auth("用户名", "密码"),
+        "Accept-Encoding": "gzip, deflate",
     }
 
 
@@ -152,7 +160,7 @@ async def test_authentication_error(status: int) -> None:
     api, _, response = make_client({}, status)
     with pytest.raises(InvalidAuth):
         await api.async_get_product()
-    response.json.assert_not_awaited()
+    response.content.read.assert_not_awaited()
 
 
 @pytest.mark.parametrize("status", [301, 302, 307, 308, 500])
@@ -162,7 +170,7 @@ async def test_http_error_and_redirect(status: int) -> None:
     with pytest.raises(InvalidResponse):
         await api.async_get_product()
     assert session.get.call_count == 1
-    response.json.assert_not_awaited()
+    response.content.read.assert_not_awaited()
 
 
 @pytest.mark.parametrize(
@@ -213,11 +221,11 @@ async def test_async_timeout() -> None:
     """Enforce the client timeout independently of a session's defaults."""
     api, _, response = make_client({})
 
-    async def slow_json() -> object:
+    async def slow_read(size: int) -> bytes:
         await asyncio.sleep(0.02)
-        return {}
+        return b""
 
-    response.json.side_effect = slow_json
+    response.content.read.side_effect = slow_read
     from unittest.mock import patch
 
     with (
@@ -230,15 +238,14 @@ async def test_async_timeout() -> None:
         await api.async_get_product()
 
 
-@pytest.mark.parametrize(
-    "error", [ValueError("raw secret"), aiohttp.ContentTypeError(MagicMock(), ())]
-)
-async def test_json_errors(error: Exception) -> None:
+@pytest.mark.parametrize("body", [b"raw secret", b"\xff", b'{"secret":'])
+async def test_json_errors(body: bytes) -> None:
     """Hide raw response decoding errors behind a safe schema error."""
     api, _, response = make_client({})
-    response.json.side_effect = error
-    with pytest.raises(InvalidResponse, match="Invalid JSON response"):
+    response.content.read.side_effect = [body, b""]
+    with pytest.raises(InvalidResponse, match="Invalid JSON response") as exc:
         await api.async_get_product()
+    assert exc.value.__suppress_context__
 
 
 @pytest.mark.parametrize("status", [404, 501])

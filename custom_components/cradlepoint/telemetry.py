@@ -3,10 +3,15 @@
 import math
 from dataclasses import dataclass, replace
 
-from .api import InvalidResponse, ProductInfo
+from .api import MAX_STATE_LENGTH, InvalidResponse, ProductInfo
 
 GPS_MAX_AGE = 120
 CONNECTION_STATES = ("connected", "disconnected", "connecting")
+MAX_WAN_KEY_LENGTH = MAX_STATE_LENGTH
+# Generous for multi-modem routers, but bounded before per-device normalization.
+MAX_WAN_DEVICES = 64
+# Bound decimal sensor states, not a vendor-specific hardware counter range.
+MAX_COUNTER_VALUE = 10**MAX_STATE_LENGTH - 1
 
 
 def object_data(value: object) -> dict[str, object]:
@@ -35,7 +40,7 @@ def counter(value: object) -> int | None:
     """Require nonnegative integer counters; missing readings remain unknown."""
     if value is None:
         return None
-    if type(value) is not int or value < 0:
+    if type(value) is not int or not 0 <= value <= MAX_COUNTER_VALUE:
         raise InvalidResponse("Invalid counter")
     return value
 
@@ -66,17 +71,19 @@ class WanDevice:
 def parse_wan(value: object) -> tuple[WanDevice, ...]:
     """Parse the documented device-keyed WAN tree, not key prefixes."""
     devices = object_data(value)
+    if len(devices) > MAX_WAN_DEVICES:
+        raise InvalidResponse("Too many WAN devices")
     result = []
     for key, raw in devices.items():
-        if not isinstance(key, str) or not key:
-            raise InvalidResponse("Invalid WAN key")
-        device = object_data(raw)
-        info = object_data(device.get("info", {}))
-        transport = info.get("type")
-        status = object_data(device.get("status", {}))
-        stats = object_data(device.get("stats", {}))
-        result.append(
-            WanDevice(
+        if not isinstance(key, str) or not key.strip() or len(key) > MAX_WAN_KEY_LENGTH:
+            continue
+        try:
+            device = object_data(raw)
+            info = object_data(device.get("info", {}))
+            transport = info.get("type")
+            status = object_data(device.get("status", {}))
+            stats = object_data(device.get("stats", {}))
+            normalized = WanDevice(
                 key,
                 transport
                 if isinstance(transport, str) and transport in ("mdm", "ethernet")
@@ -86,7 +93,9 @@ def parse_wan(value: object) -> tuple[WanDevice, ...]:
                 counter(stats.get("in")),
                 counter(stats.get("out")),
             )
-        )
+        except InvalidResponse:
+            continue
+        result.append(normalized)
     return tuple(result)
 
 
@@ -99,12 +108,15 @@ def parse_firmware(value: object) -> str:
     ]
     if None in parts:
         raise InvalidResponse("Incomplete firmware version")
-    return ".".join(str(part) for part in parts)
+    version = ".".join(str(part) for part in parts)
+    if len(version) > MAX_STATE_LENGTH:
+        raise InvalidResponse("Invalid firmware version")
+    return version
 
 
 def parse_primary(value: object) -> str | None:
     """Read the documented primary device key, allowing no selected device."""
-    if not isinstance(value, str):
+    if not isinstance(value, str) or len(value) > MAX_WAN_KEY_LENGTH:
         raise InvalidResponse("Invalid primary device")
     return value or None
 

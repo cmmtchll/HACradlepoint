@@ -18,15 +18,21 @@ from homeassistant.const import (
     UnitOfTime,
 )
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
-from .coordinator import CradlePointConfigEntry, CradlePointCoordinator
-from .telemetry import GpsFix, RouterSnapshot, WanDevice
+from .coordinator import (
+    CradlePointConfigEntry,
+    CradlePointCoordinator,
+    CradlePointGpsCoordinator,
+)
+from .telemetry import RouterSnapshot, WanDevice
 
 PARALLEL_UPDATES = 0
+MAX_DISCOVERED_WAN_DEVICES = 64
 
 DESCRIPTION = SensorEntityDescription(
     key="product_name",
@@ -136,25 +142,42 @@ async def async_setup_entry(
     async_add_entities(
         [CradlePointProductSensor(coordinator)]
         + [CradlePointTelemetrySensor(coordinator, desc) for desc in ROUTER_SENSORS]
-        + [
-            CradlePointTelemetrySensor(coordinator, desc)
-            for desc in GPS_SENSORS
-            if coordinator.gps_enabled
-        ]
     )
+    if coordinator.gps is not None:
+        async_add_entities(
+            [
+                CradlePointGpsSensor(coordinator, coordinator.gps, desc)
+                for desc in GPS_SENSORS
+            ]
+        )
+    # Registry identities reserve the budget across unloads and reloads.
     known: set[str] = set()
+    prefix = f"{coordinator.serial_number}_"
+    for entity in er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id):
+        if not entity.unique_id.startswith(prefix):
+            continue
+        for description in WAN_SENSORS:
+            suffix = f"_{description.key}"
+            if entity.unique_id.endswith(suffix):
+                known.add(entity.unique_id[len(prefix) : -len(suffix)])
+                break
+    loaded: set[str] = set()
 
     @callback
     def discover() -> None:
         """Discover new WAN keys from shared snapshots, without extra requests."""
         entities: list[CradlePointTelemetrySensor] = []
         for device in coordinator.data.wan or ():
-            if device.key not in known:
-                known.add(device.key)
-                entities.extend(
-                    CradlePointTelemetrySensor(coordinator, desc, device.key)
-                    for desc in WAN_SENSORS
-                )
+            if device.key in loaded or len(loaded) >= MAX_DISCOVERED_WAN_DEVICES:
+                continue
+            if device.key not in known and len(known) >= MAX_DISCOVERED_WAN_DEVICES:
+                continue
+            known.add(device.key)
+            loaded.add(device.key)
+            entities.extend(
+                CradlePointTelemetrySensor(coordinator, desc, device.key)
+                for desc in WAN_SENSORS
+            )
         if entities:
             async_add_entities(entities)
 
@@ -208,10 +231,8 @@ class CradlePointTelemetrySensor(CradlePointProductSensor):
             self._attr_translation_placeholders = {"wan": wan_key}
 
     @property
-    def _source(self) -> RouterSnapshot | WanDevice | GpsFix | None:
+    def _source(self) -> RouterSnapshot | WanDevice | None:
         """Select one normalized snapshot capability."""
-        if self.entity_description.source == "gps":
-            return self.coordinator.data.gps
         if self.entity_description.source == "wan":
             return next(
                 (
@@ -232,11 +253,6 @@ class CradlePointTelemetrySensor(CradlePointProductSensor):
             "firmware",
             "primary",
             "wan_state",
-            "gps_latitude",
-            "gps_longitude",
-            "gps_altitude",
-            "gps_speed",
-            "gps_heading",
         ):
             return self.native_value is not None
         return True
@@ -247,4 +263,45 @@ class CradlePointTelemetrySensor(CradlePointProductSensor):
         return cast(
             str | int | float | bool | None,
             getattr(self._source, self.entity_description.field, None),
+        )
+
+
+class CradlePointGpsSensor(CoordinatorEntity[CradlePointGpsCoordinator], SensorEntity):
+    """Expose live-consented GPS without depending on WAN polling health."""
+
+    _attr_has_entity_name = True
+    entity_description: TelemetryDescription
+
+    def __init__(
+        self,
+        router: CradlePointCoordinator,
+        coordinator: CradlePointGpsCoordinator,
+        description: TelemetryDescription,
+    ) -> None:
+        """Keep existing serial-based GPS and physical-device identifiers."""
+        super().__init__(coordinator)
+        self.entity_description = description
+        self._attr_unique_id = f"{router.serial_number}_{description.key}"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, router.data.serial_number)}
+        )
+
+    @property
+    def available(self) -> bool:
+        """Hide positions after lock loss, freshness expiry or consent revocation."""
+        return (
+            super().available
+            and self.coordinator.current_fix is not None
+            and (
+                self.entity_description.field in ("lock", "age", "satellites")
+                or self.native_value is not None
+            )
+        )
+
+    @property
+    def native_value(self) -> str | int | float | bool | None:
+        """Read only the current privacy- and freshness-filtered fix."""
+        return cast(
+            str | int | float | bool | None,
+            getattr(self.coordinator.current_fix, self.entity_description.field, None),
         )

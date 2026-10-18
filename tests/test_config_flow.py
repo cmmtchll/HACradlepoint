@@ -141,6 +141,10 @@ async def test_update_flow(
     if wrong_router:
         assert result["type"] is FlowResultType.FORM
         assert result["errors"] == {"base": "wrong_device"}
+        assert all(
+            flow["context"].get("unique_id") != "OTHER"
+            for flow in hass.config_entries.flow.async_progress()
+        )
         assert entry.data == DATA
         reload.assert_not_called()
     else:
@@ -151,6 +155,32 @@ async def test_update_flow(
         assert entry.data == updated
         assert entry.unique_id == "SERIAL-001"
         reload.assert_awaited_once_with(entry.entry_id)
+
+
+@pytest.mark.parametrize("source", [SOURCE_REAUTH, SOURCE_RECONFIGURE])
+async def test_wrong_router_does_not_reserve_identity(
+    hass: HomeAssistant, product_api: AsyncMock, source: str
+) -> None:
+    """A rejected replacement must not block that router's own user flow."""
+    entry = MockConfigEntry(domain=DOMAIN, unique_id="SERIAL-001", data=DATA)
+    entry.add_to_hass(hass)
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": source, "entry_id": entry.entry_id},
+        data=entry.data if source == SOURCE_REAUTH else None,
+    )
+    product_api.return_value = ProductInfo("OTHER", "E300")
+    rejected = await hass.config_entries.flow.async_configure(result["flow_id"], INPUT)
+    assert rejected["type"] is FlowResultType.FORM
+    assert rejected["errors"] == {"base": "wrong_device"}
+    with patch("custom_components.cradlepoint.async_setup_entry", return_value=True):
+        other = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": SOURCE_USER}, data=INPUT
+        )
+        await hass.async_block_till_done()
+    assert other["type"] is FlowResultType.CREATE_ENTRY
+    assert other["result"].unique_id == "OTHER"
+    assert entry.data == DATA
 
 
 @pytest.mark.parametrize("source", [SOURCE_REAUTH, SOURCE_RECONFIGURE])

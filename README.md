@@ -18,6 +18,8 @@ It is not affiliated with Ericsson Enterprise Wireless Solutions.
   byte totals and reset-safe average byte/second rates.
 - Optional GPS lock, age, coordinates, altitude, speed, heading and satellites.
   GPS requests are **off by default**; enable deliberately through **Configure**.
+  Enabled GPS has an independent 60-second polling stream and position-expiry
+  deadlines, so slow WAN/firmware requests cannot delay its updates.
 - Local HTTPS polling every 60 seconds, connection validation at setup, and
   unavailable/recovery handling.
 - Minimal diagnostics that do not export credentials, router addresses, serial
@@ -44,6 +46,9 @@ Core 2026.10.1 on Python 3.14. This repository is not in the default HACS catalo
 and does not currently publish release assets.
 
 ### HACS custom repository
+
+HACS requires a publicly accessible repository; use manual installation if
+the repository is private or unavailable to HACS.
 
 1. In HACS, open **Custom repositories**.
 2. Add `https://github.com/cmmtchll/HACradlepoint` with category **Integration**.

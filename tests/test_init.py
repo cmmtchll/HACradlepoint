@@ -41,6 +41,7 @@ async def test_setup_and_unload(hass: HomeAssistant, product_api: AsyncMock) -> 
     await hass.async_block_till_done()
     assert entry.state is ConfigEntryState.LOADED
     assert entry.runtime_data.update_interval == UPDATE_INTERVAL
+    assert entry.runtime_data.gps is None
     registry = er.async_get(hass)
     entity_id = registry.async_get_entity_id(
         "sensor", DOMAIN, "SERIAL-001_product_name"

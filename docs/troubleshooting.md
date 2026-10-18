@@ -6,6 +6,16 @@ Confirm the directory is `custom_components/cradlepoint` under the Home
 Assistant configuration directory, not nested inside another copy of the
 repository. Restart after installation and check Core is at least 2026.10.1.
 
+## HACS installation or validation fails
+
+HACS distribution and its upstream validator require a public repository.
+Repository publication and descriptive GitHub topics are maintainer settings,
+not integration configuration. If validation reports a missing manifest
+dictionary or invalid `hacs.json`, first check whether HACS can retrieve the
+files anonymously; do not assume the JSON is malformed. Manual installation
+remains available when HACS cannot access the repository. Do not add access
+tokens to the integration or skip validation checks.
+
 ## Cannot connect
 
 Verify the router URL is an HTTPS origin only, including a custom port if
@@ -52,7 +62,9 @@ Any endpoint's HTTP 401/403 requests reauthentication. Missing per-WAN counters
 show unknown, not zero; rates need two consecutive good samples and become unknown
 after resets/outages. WAN state is not a test of Internet reachability.
 GPS entities require the **Configure** opt-in; coordinates also need a locked fix
-no older than 120 seconds at sampling. Check the router's antenna/GPS settings
+with age plus elapsed delivery time below 120 seconds. Positions expire without
+waiting for another poll. GPS has its own 60-second schedule, independent of
+WAN/firmware response delays. Check the router's antenna/GPS settings
 without posting NMEA or location. Wi-Fi SSID/signal fields are deliberately deferred
 because the verified vendor schema does not specify them.
 

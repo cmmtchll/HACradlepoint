@@ -71,10 +71,15 @@ def test_wan_normalization_and_rates() -> None:
     assert with_rates(first, first, -1)[0].sent_rate is None
     assert with_rates(first, first, 60)[0].received_rate == 0
     assert (
-        with_rates(parse_wan(wan_payload(10**400)), first, 60)[0].received_rate is None
+        with_rates((WanDevice("device-a", None, None, None, 10**400, 200),), first, 60)[
+            0
+        ].received_rate
+        is None
     )
     assert (
-        with_rates(parse_wan(wan_payload(10**300)), first, 1e-300)[0].received_rate
+        with_rates(
+            (WanDevice("device-a", None, None, None, 10**300, 200),), first, 1e-300
+        )[0].received_rate
         is None
     )
     assert with_rates(parse_wan(wan_payload(None, None)), first, 60)[0].received is None
@@ -93,6 +98,17 @@ def test_wan_normalization_and_rates() -> None:
     "payload",
     [
         [],
+    ],
+)
+def test_invalid_wan(payload: object) -> None:
+    """Reject a malformed top-level tree."""
+    with pytest.raises(InvalidResponse):
+        parse_wan(payload)
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
         {"": {}},
         {123: {}},
         {"device": []},
@@ -107,10 +123,11 @@ def test_wan_normalization_and_rates() -> None:
         wan_payload("10"),
     ],
 )
-def test_invalid_wan(payload: object) -> None:
-    """Reject malformed shapes, unknown states and noninteger traffic."""
-    with pytest.raises(InvalidResponse):
-        parse_wan(payload)
+def test_invalid_wan_device(payload: dict[str, object]) -> None:
+    """Skip malformed device shapes, states and traffic without losing peers."""
+    assert parse_wan(payload) == ()
+    healthy = wan_payload()
+    assert parse_wan({**payload, **healthy}) == parse_wan(healthy)
 
 
 @pytest.mark.parametrize(
