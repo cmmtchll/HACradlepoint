@@ -43,8 +43,15 @@ HACS and hassfest; local lint/type/test success is not a substitute for them.
   coordinator. Do not block the event loop or create per-entity polling.
 * Test setup/unload, invalid input, authentication loss, connection errors,
   malformed responses, device identity changes, and unavailable/recovery cases.
-* Keep HTTPS verification enabled. Never follow authentication-bearing redirects,
-  log credentials or raw responses, or add write operations implicitly.
+* Keep HTTPS certificate verification enabled by default. A per-router bypass is
+  permitted only with explicit user authorization during integration setup,
+  following the warning and isolation requirements in `docs/security.md`.
+  Never bypass verification automatically after a certificate failure. Preserve
+  HTTPS encryption (including on port 443) and never add HTTP fallback.
+  The current implementation has no bypass option; this policy permits a future
+  opt-in feature, not a change to existing connection behavior.
+  Never follow authentication-bearing redirects, log credentials or raw
+  responses, or add write operations implicitly.
 * Use synthetic test credentials. Strip IPs, hostnames, serials, IMEI/ICCID,
   location, account IDs, and authorization headers from contributed fixtures.
 * Update relevant docs and quality-scale evidence when those are affected.

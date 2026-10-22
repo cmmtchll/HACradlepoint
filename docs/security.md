@@ -2,14 +2,31 @@
 
 ## Transport and credentials
 
-Only HTTPS origins are accepted. TLS certificate verification remains enabled.
+Only HTTPS origins are accepted. TLS certificate verification is required by
+default. The security policy permits a per-router certificate-verification
+bypass only when the user explicitly authorizes it during integration setup.
+Such an option must be off by default and must never be enabled automatically
+after a certificate error or by DHCP discovery.
+
+An authorized bypass may accept expired certificates and certificates with an
+untrusted chain, including self-signed certificates. HTTPS encryption must
+remain enabled, including on the default port 443; HTTP fallback is not allowed.
+Before authorization, the setup UI must warn that disabling verification removes
+certificate-based server authentication and can expose router credentials and
+telemetry to an impersonating host. Authorization must apply only to that config
+entry, not the shared Home Assistant session or other integrations.
+
+**Current implementation:** certificate verification remains enabled for every
+request; no setup option or SSL bypass is implemented yet. This policy permission
+does not change runtime behavior.
+
 The client uses HTTP Basic authentication to the explicitly configured origin;
 it does not follow redirects or accept credentials embedded in a URL.
-No HTTP fallback, SSL bypass, cloud API key, write operation, or remote shell
-is included. Router credentials must never be stored in repository files or CI.
+No HTTP fallback, cloud API key, write operation, or remote shell is included.
+Router credentials must never be stored in repository files or CI.
 DHCP discovery is unauthenticated network metadata and only prefills the address;
-the user must provide credentials, and the certificate must still validate for
-the selected HTTPS origin.
+the user must provide credentials. In the current implementation, the certificate
+must still validate for the selected HTTPS origin.
 
 Passwords are stored by Home Assistant in its config-entry storage, not an
 external secret manager. Protect that storage and backups, restrict account
