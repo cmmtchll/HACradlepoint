@@ -67,7 +67,9 @@ the repository is private or unavailable to HACS.
 4. Enter the router's HTTPS origin and local API username/password.
 
 The router must have a trusted HTTPS certificate matching the configured
-hostname. There is **no HTTP mode or TLS-verification bypass**. See the
+hostname. There is **no HTTP mode**. For routers whose certificate cannot be
+validated, you may explicitly clear **Verify TLS certificate** during setup;
+this keeps HTTPS but removes server authentication. See the
 [security guide](docs/security.md) before entering credentials.
 
 ## Configuration and removal

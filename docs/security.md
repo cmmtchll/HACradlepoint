@@ -16,16 +16,20 @@ certificate-based server authentication and can expose router credentials and
 telemetry to an impersonating host. Authorization must apply only to that config
 entry, not the shared Home Assistant session or other integrations.
 
-**Current implementation:** certificate verification remains enabled for every
-request; no setup option or SSL bypass is implemented yet. This policy permission
-does not change runtime behavior.
+**Current implementation:** certificate verification is enabled by default. The
+setup, DHCP-confirm, reauthentication and reconfigure forms include a
+"Verify TLS certificate" checkbox that is on by default, with a warning. When
+the user clears it, only that config entry's requests use `ssl=False`; HTTPS,
+no-redirect behavior and the shared Home Assistant session are unchanged. It is
+never enabled automatically after a certificate error or by DHCP discovery.
 
 The client uses HTTP Basic authentication to the explicitly configured origin;
 it does not follow redirects or accept credentials embedded in a URL.
 No HTTP fallback, cloud API key, write operation, or remote shell is included.
 Router credentials must never be stored in repository files or CI.
 DHCP discovery is unauthenticated network metadata and only prefills the address;
-the user must provide credentials. In the current implementation, the certificate
+the user must provide credentials. Unless the user clears "Verify TLS
+certificate", the certificate
 must still validate for the selected HTTPS origin.
 
 Passwords are stored by Home Assistant in its config-entry storage, not an

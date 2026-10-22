@@ -22,7 +22,7 @@ from .api import (
     InvalidResponse,
     normalize_origin,
 )
-from .const import CONF_ORIGIN, DOMAIN
+from .const import CONF_ORIGIN, CONF_VERIFY_SSL, DOMAIN
 from .coordinator import CradlePointConfigEntry
 
 
@@ -98,6 +98,7 @@ class CradlePointConfigFlow(ConfigFlow, domain=DOMAIN):
             entry = self._get_reconfigure_entry()
         if user_input is not None:
             data = dict(user_input)
+            data[CONF_VERIFY_SSL] = data.get(CONF_VERIFY_SSL, True)
             try:
                 data[CONF_ORIGIN] = normalize_origin(data[CONF_ORIGIN])
             except ValueError:
@@ -108,6 +109,7 @@ class CradlePointConfigFlow(ConfigFlow, domain=DOMAIN):
                     data[CONF_ORIGIN],
                     data[CONF_USERNAME],
                     data[CONF_PASSWORD],
+                    data[CONF_VERIFY_SSL],
                 )
                 try:
                     product = await api.async_get_product()
@@ -149,6 +151,9 @@ class CradlePointConfigFlow(ConfigFlow, domain=DOMAIN):
                     CONF_USERNAME, default=defaults.get(CONF_USERNAME, vol.UNDEFINED)
                 ): str,
                 vol.Required(CONF_PASSWORD): str,
+                vol.Required(
+                    CONF_VERIFY_SSL, default=defaults.get(CONF_VERIFY_SSL, True)
+                ): bool,
             }
         )
         return self.async_show_form(step_id=step, data_schema=schema, errors=errors)

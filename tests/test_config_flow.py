@@ -24,7 +24,7 @@ from custom_components.cradlepoint.api import (
 from custom_components.cradlepoint.const import DOMAIN
 
 INPUT = {"origin": "https://ROUTER:443/", "username": "admin", "password": "secret"}
-DATA = {**INPUT, "origin": "https://router"}
+DATA = {**INPUT, "origin": "https://router", "verify_ssl": True}
 
 
 async def test_user_flow(hass: HomeAssistant, product_api: AsyncMock) -> None:
@@ -46,6 +46,27 @@ async def test_user_flow(hass: HomeAssistant, product_api: AsyncMock) -> None:
     product_api.assert_awaited_once()
 
 
+async def test_user_flow_tls_bypass(
+    hass: HomeAssistant, product_api: AsyncMock
+) -> None:
+    """Persist an explicit per-router TLS verification opt-out."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_USER}
+    )
+    with (
+        patch("custom_components.cradlepoint.async_setup_entry", return_value=True),
+        patch("custom_components.cradlepoint.config_flow.CradlePointApi") as api,
+    ):
+        api.return_value.async_get_product = product_api
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {**INPUT, "verify_ssl": False}
+        )
+        await hass.async_block_till_done()
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["data"]["verify_ssl"] is False
+    assert api.call_args.args[-1] is False
+
+
 async def test_dhcp_flow(hass: HomeAssistant, product_api: AsyncMock) -> None:
     """Offer credentials form with the DHCP-discovered router address."""
     discovery_info = DhcpServiceInfo(
@@ -63,6 +84,7 @@ async def test_dhcp_flow(hass: HomeAssistant, product_api: AsyncMock) -> None:
         "origin": "https://192.0.2.10",
         "username": "admin",
         "password": "secret",
+        "verify_ssl": True,
     }
     with patch("custom_components.cradlepoint.async_setup_entry", return_value=True):
         result = await hass.config_entries.flow.async_configure(
