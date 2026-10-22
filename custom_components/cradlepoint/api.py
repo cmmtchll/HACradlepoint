@@ -176,9 +176,11 @@ class CradlePointApi:
         origin: str,
         username: str,
         password: str,
+        verify_ssl: bool = True,
     ) -> None:
         """Initialize the client without taking ownership of its session."""
         self._session = session
+        self._verify_ssl = verify_ssl
         self._origin = normalize_origin(origin)
         self._username = username
         self._password = password
@@ -234,7 +236,8 @@ class CradlePointApi:
                         "Accept-Encoding": "gzip, deflate",
                     },
                     allow_redirects=False,
-                    ssl=True,
+                    # Per-request, so only this config entry skips verification.
+                    ssl=self._verify_ssl,
                     auto_decompress=False,
                 ) as response:
                     if response.status in (401, 403):

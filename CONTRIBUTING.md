@@ -48,8 +48,7 @@ HACS and hassfest; local lint/type/test success is not a substitute for them.
   following the warning and isolation requirements in `docs/security.md`.
   Never bypass verification automatically after a certificate failure. Preserve
   HTTPS encryption (including on port 443) and never add HTTP fallback.
-  The current implementation has no bypass option; this policy permits a future
-  opt-in feature, not a change to existing connection behavior.
+  The bypass is an opt-in "Verify TLS certificate" checkbox in the config flow.
   Never follow authentication-bearing redirects, log credentials or raw
   responses, or add write operations implicitly.
 * Use synthetic test credentials. Strip IPs, hostnames, serials, IMEI/ICCID,

@@ -119,8 +119,23 @@ async def test_product_request() -> None:
     session.close.assert_not_called()
 
 
+async def test_product_request_without_verification() -> None:
+    """Skip certificate verification only when explicitly configured."""
+    api, session, _ = make_client(
+        {
+            "success": True,
+            "data": {
+                "manufacturing": {"serial_num": "SERIAL-001"},
+                "product_name": "E300",
+            },
+        }
+    )
+    api._verify_ssl = False
+    await api.async_get_product()
+    assert session.get.call_args.kwargs["ssl"] is False
+
+
 @pytest.mark.parametrize(
-    ("username", "password"),
     [
         ("invalid:username", "secret"),
         ("\ud800", "secret"),

@@ -5,7 +5,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import CradlePointApi
-from .const import CONF_ORIGIN
+from .const import CONF_ORIGIN, CONF_VERIFY_SSL
 from .coordinator import CradlePointConfigEntry, CradlePointCoordinator
 
 PLATFORMS = [Platform.SENSOR]
@@ -18,6 +18,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CradlePointConfigEntry) 
         entry.data[CONF_ORIGIN],
         entry.data[CONF_USERNAME],
         entry.data[CONF_PASSWORD],
+        entry.data.get(CONF_VERIFY_SSL, True),
     )
     coordinator = CradlePointCoordinator(hass, entry, api)
     if coordinator.gps is not None:
