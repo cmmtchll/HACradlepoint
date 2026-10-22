@@ -29,7 +29,7 @@ def number(value: object) -> float | None:
         raise InvalidResponse("Invalid numeric reading")
     try:
         result = float(value)
-    except (ValueError, OverflowError):
+    except ValueError, OverflowError:
         raise InvalidResponse("Invalid numeric reading") from None
     if not math.isfinite(result):
         raise InvalidResponse("Invalid numeric reading")

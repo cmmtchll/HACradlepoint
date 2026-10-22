@@ -75,7 +75,7 @@ class CradlePointCoordinator(DataUpdateCoordinator[RouterSnapshot]):
         """Isolate unavailable optional capabilities but never swallow auth."""
         try:
             return parser(await self.api.async_get(path))
-        except (CannotConnect, InvalidResponse):
+        except CannotConnect, InvalidResponse:
             return None
 
     async def _async_wan_sample(self) -> tuple[tuple[WanDevice, ...] | None, float]:
