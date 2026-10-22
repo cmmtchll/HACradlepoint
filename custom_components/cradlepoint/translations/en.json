@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Connect to a CradlePoint router",
-        "description": "Enter the router's HTTPS origin and         local router credentials. A valid, trusted TLS certificate is required unless you disable verification below. WARNING: disabling certificate verification removes server authentication and can expose router credentials and telemetry to an impersonating host.",
+        "description": "Enter the router's HTTPS origin and local router credentials. A valid, trusted TLS certificate is required unless you disable verification below. WARNING: disabling certificate verification removes server authentication and can expose router credentials and telemetry to an impersonating host.",
         "data": {
           "origin": "HTTPS origin",
           "username": "Username",
@@ -13,7 +13,7 @@
       },
       "dhcp_confirm": {
         "title": "CradlePoint router discovered",
-        "description": "A CradlePoint device was detected on the local network. Confirm its HTTPS origin and enter local router credentials. DHCP discovery is         not authentication; a valid, trusted TLS certificate is required unless you disable verification below. WARNING: disabling certificate verification removes server authentication and can expose router credentials and telemetry to an impersonating host.",
+        "description": "A CradlePoint device was detected on the local network. Confirm its HTTPS origin and enter local router credentials. DHCP discovery is not authentication; a valid, trusted TLS certificate is required unless you disable verification below. WARNING: disabling certificate verification removes server authentication and can expose router credentials and telemetry to an impersonating host.",
         "data": {
           "origin": "HTTPS origin",
           "username": "Username",
@@ -23,7 +23,7 @@
       },
       "reauth_confirm": {
         "title": "Reauthenticate with the router",
-        "description": "Enter credentials for the same router.         Its serial number must match the existing configuration. WARNING: disabling certificate verification removes server authentication and can expose router credentials and telemetry to an impersonating host.",
+        "description": "Enter credentials for the same router. Its serial number must match the existing configuration. WARNING: disabling certificate verification removes server authentication and can expose router credentials and telemetry to an impersonating host.",
         "data": {
           "origin": "HTTPS origin",
           "username": "Username",
@@ -33,7 +33,7 @@
       },
       "reconfigure": {
         "title": "Reconfigure router connection",
-        "description": "        Update the HTTPS origin or credentials for the same router. WARNING: disabling certificate verification removes server authentication and can expose router credentials and telemetry to an impersonating host.",
+        "description": "Update the HTTPS origin or credentials for the same router. WARNING: disabling certificate verification removes server authentication and can expose router credentials and telemetry to an impersonating host.",
         "data": {
           "origin": "HTTPS origin",
           "username": "Username",

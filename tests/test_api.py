@@ -136,6 +136,7 @@ async def test_product_request_without_verification() -> None:
 
 
 @pytest.mark.parametrize(
+    ("username", "password"),
     [
         ("invalid:username", "secret"),
         ("\ud800", "secret"),
