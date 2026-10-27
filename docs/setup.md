@@ -5,7 +5,9 @@
 * Home Assistant Core 2026.10.1 or later and this custom integration installed
   through a HACS custom repository or by copying its component directory.
 * A CradlePoint router exposing the documented local NCOS product endpoint.
-  Model and firmware compatibility have not been verified on real hardware.
+  Basic operation has been verified on an IBR1700-600M with Home Assistant
+  2026.10.4; NCOS firmware and optional feature compatibility remain unverified.
+  See [hardware verification scope](features.md#hardware-verification).
 * Network access from the Home Assistant host to the router's HTTPS management
   service. NetCloud account credentials and cloud API keys are not used.
 * A trusted certificate whose DNS/IP subject matches the configured address.

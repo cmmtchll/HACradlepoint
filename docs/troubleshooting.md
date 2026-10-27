@@ -74,4 +74,6 @@ Include Home Assistant version, integration version, NCOS version, model,
 expected behavior and sanitized error text. Diagnostics are available from
 the integration entry and intentionally omit credentials, address and serial.
 Do not upload raw API dumps, authorization headers, backups, IMEI/ICCID,
-GPS coordinates, or account details. No specific hardware is yet verified.
+GPS coordinates, or account details. Basic operation is hardware-verified on
+the IBR1700-600M; see [verification scope](features.md#hardware-verification)
+before assuming a firmware version or optional feature has been tested.

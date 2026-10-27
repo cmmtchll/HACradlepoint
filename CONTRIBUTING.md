@@ -84,8 +84,11 @@ automatically merging dependency changes.
 
 ## Release checklist
 
-Real-hardware validation is optional at this experimental stage; no verified
-router traces are required. Update the component manifest, project version, and
+Basic IBR1700-600M operation has been confirmed by user-provided diagnostics;
+see [verification scope](docs/features.md#hardware-verification). Additional
+real-hardware validation is optional at this experimental stage; no raw router
+traces are required. Keep model, firmware and feature claims scoped to the
+available evidence. Update the component manifest, project version, and
 changelog together when preparing a release. Review available CI results before
 tagging.
 HACS custom-repository availability does not imply HACS default-catalog approval

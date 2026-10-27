@@ -32,12 +32,17 @@ It is not affiliated with Ericsson Enterprise Wireless Solutions.
   **100% config-flow coverage**, HACS validation, hassfest, and a complete
   Bronze-through-Platinum checklist audit.
 
-**No hardware/model/firmware combination has been verified yet.** Tests use
-synthetic API responses. A router must provide the documented NCOS
+**Hardware-tested: IBR1700-600M.** User-provided diagnostics confirm successful
+setup and a successful latest coordinator update with integration **0.1.0** on
+**Home Assistant OS / Core 2026.10.4** (aarch64, Python 3.14.9).
+The NCOS firmware version and optional firmware/WAN/GPS readings were not included;
+this is not verification of every feature or other models. See
+[hardware verification scope](docs/features.md#hardware-verification).
+Automated tests use synthetic API responses. A router must provide the documented NCOS
 `GET /api/status/product_info` endpoint with `success: true`, nonempty
 `data.manufacturing.serial_num` and `data.product_name`. A **404 only** permits
-the legacy `/api/status/product` contract. The IBR1700-600M and NCOS 6.x/7.x are
-experimental targets, not verified compatibility claims; optional endpoints are
+the legacy `/api/status/product` contract. NCOS 6.x/7.x compatibility remains
+unverified; optional endpoints are
 capability-detected, not guessed from a model/version. Wi-Fi-as-WAN can contribute
 generic WAN readings if present in that tree; SSID/signal schemas remain deferred.
 WAN state is **not Internet health**. Controls and cloud access are not
@@ -106,7 +111,8 @@ Bronze, Silver, Gold, and Platinum are **targets, not awarded medallions**.
 The checklist records all 54 official rules with evidence or explicit gaps.
 A green checklist audit validates tracking integrity; it does not prove
 device compatibility or award a tier. Branding, discovery assessment, repairs,
-and real-router verification remain open. See [quality status](quality_scale.md).
+and broader real-router feature/firmware verification remain open.
+See [quality status](quality_scale.md).
 
 ## Development
 
