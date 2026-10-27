@@ -40,6 +40,13 @@ timeout each. No entity makes its own request.
 | Per-WAN receive/send rates | Consecutive totals and monotonic sample time | Bytes/second average between polls |
 | Optional GPS | `/api/status/gps`, `fix` | Lock, age seconds, decimal latitude/longitude degrees, altitude meters, speed knots, heading degrees, satellites |
 
+With GPS enabled, a **GPS location** `device_tracker` entity on the same router
+device combines the validated latitude and longitude for Home Assistant maps and
+zone-based presence. Existing GPS sensors remain available. The tracker shares
+the GPS coordinator and makes no additional requests. Both coordinates must be
+present in a fresh locked fix; otherwise the tracker is unavailable and neither
+coordinate is published. No GPS accuracy estimate is provided by this integration.
+
 New WAN keys discovered after setup create stable serial-plus-device-key entities.
 Removed devices become unavailable without deleting registry/history identity;
 returning keys reuse their entities. Key prefixes are never used to infer
@@ -105,7 +112,8 @@ There are no router configuration changes, reboot actions, or switch controls.
 * Observe management-API availability through the entity's unavailable state.
 * Monitor documented WAN link/state changes without claiming Internet health.
 * Track per-WAN traffic usage and polling-interval average rates.
-* Deliberately opt into router GPS display, subject to privacy/freshness limits.
+* Deliberately opt into router GPS display and map/zone tracking, subject to
+  privacy/freshness limits.
 
 ## Example: alert when the management API becomes unavailable
 

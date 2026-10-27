@@ -19,6 +19,8 @@ It is not affiliated with Ericsson Enterprise Wireless Solutions.
 - Dynamic per-WAN connection/link states, documented transport type, received/sent
   byte totals and reset-safe average byte/second rates.
 - Optional GPS lock, age, coordinates, altitude, speed, heading and satellites.
+  A **GPS location** device tracker combines latitude/longitude on the same router
+  device for Home Assistant maps and zones, alongside the existing GPS sensors.
   GPS requests are **off by default**; enable deliberately through **Configure**.
   Enabled GPS has an independent 60-second polling stream and position-expiry
   deadlines, so slow WAN/firmware requests cannot delay its updates.

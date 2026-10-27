@@ -1,5 +1,8 @@
 {
   "entity": {
+    "device_tracker": {
+      "gps_location": {"default": "mdi:crosshairs-gps"}
+    },
     "sensor": {
       "product_name": {
         "default": "mdi:router-network"

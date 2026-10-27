@@ -8,7 +8,7 @@ from .api import CradlePointApi
 from .const import CONF_ORIGIN, CONF_VERIFY_SSL
 from .coordinator import CradlePointConfigEntry, CradlePointCoordinator
 
-PLATFORMS = [Platform.SENSOR]
+PLATFORMS = [Platform.SENSOR, Platform.DEVICE_TRACKER]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: CradlePointConfigEntry) -> bool:

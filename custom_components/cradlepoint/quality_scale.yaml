@@ -40,13 +40,13 @@ rules:
     comment: This integration provides no custom automation triggers.
   entity-event-setup:
     status: done
-    comment: custom_components/cradlepoint/sensor.py uses CoordinatorEntity lifecycle subscriptions; tests/test_init.py and tests/test_gps.py verify polling and GPS freshness callbacks stop after unloading.
+    comment: custom_components/cradlepoint/sensor.py and custom_components/cradlepoint/device_tracker.py use CoordinatorEntity lifecycle subscriptions; tests/test_init.py, tests/test_gps.py and tests/test_device_tracker.py verify polling and GPS freshness callbacks stop after unloading.
   entity-unique-id:
     status: done
-    comment: custom_components/cradlepoint/sensor.py defines serial-based entity identifiers; tests/test_init.py verifies their registry identity.
+    comment: custom_components/cradlepoint/sensor.py and custom_components/cradlepoint/device_tracker.py define serial-based entity identifiers; tests/test_init.py and tests/test_device_tracker.py verify registry identity including tracker reloads.
   has-entity-name:
     status: done
-    comment: custom_components/cradlepoint/sensor.py enables has_entity_name and custom_components/cradlepoint/strings.json defines the product-name translation.
+    comment: custom_components/cradlepoint/sensor.py and custom_components/cradlepoint/device_tracker.py enable has_entity_name; custom_components/cradlepoint/strings.json defines their translations.
   runtime-data:
     status: done
     comment: custom_components/cradlepoint/coordinator.py defines typed entries and custom_components/cradlepoint/__init__.py assigns runtime_data exercised by tests/test_init.py.
@@ -73,7 +73,7 @@ rules:
     comment: docs/setup.md documents required router credentials and installation parameters.
   entity-unavailable:
     status: done
-    comment: custom_components/cradlepoint/sensor.py inherits per-stream coordinator availability; tests/test_init.py and tests/test_gps.py verify failures, wrong-router rejection, GPS freshness expiry and recovery.
+    comment: custom_components/cradlepoint/sensor.py and custom_components/cradlepoint/device_tracker.py inherit per-stream coordinator availability; tests/test_init.py, tests/test_gps.py and tests/test_device_tracker.py verify failures, wrong-router rejection, GPS freshness expiry and recovery.
   integration-owner:
     status: done
     comment: custom_components/cradlepoint/manifest.json declares the integration codeowner and CONTRIBUTING.md documents maintainer reporting responsibilities.
@@ -82,16 +82,16 @@ rules:
     comment: Verify coordinator transition logging avoids repeated failure messages.
   parallel-updates:
     status: done
-    comment: custom_components/cradlepoint/sensor.py explicitly declares PARALLEL_UPDATES = 0 because custom_components/cradlepoint/coordinator.py handles shared polling.
+    comment: custom_components/cradlepoint/sensor.py and custom_components/cradlepoint/device_tracker.py explicitly declare PARALLEL_UPDATES = 0 because custom_components/cradlepoint/coordinator.py handles shared polling.
   reauthentication-flow:
     status: done
     comment: custom_components/cradlepoint/config_flow.py implements same-router reauthentication; tests/test_config_flow.py and tests/test_init.py verify updates and authentication failures.
   test-coverage:
     status: done
-    comment: tests/test_api.py, tests/test_config_flow.py, tests/test_init.py, tests/test_optional.py, tests/test_telemetry.py, tests/test_gps.py and tests/test_input_bounds.py exercise transport, lifecycle, independent GPS, consent and malformed-input regressions; pyproject.toml retains at least 96 percent integration coverage and CI enforces 100 percent config-flow coverage.
+    comment: tests/test_api.py, tests/test_config_flow.py, tests/test_init.py, tests/test_optional.py, tests/test_telemetry.py, tests/test_gps.py, tests/test_device_tracker.py and tests/test_input_bounds.py exercise transport, lifecycle, independent GPS, opted-in tracking, consent and malformed-input regressions; pyproject.toml retains at least 96 percent integration coverage and CI enforces 100 percent config-flow coverage.
   devices:
     status: done
-    comment: custom_components/cradlepoint/sensor.py defines router device metadata; tests/test_init.py verifies stable identifiers, manufacturer, model, and serial.
+    comment: custom_components/cradlepoint/sensor.py defines router device metadata; tests/test_init.py verifies stable identifiers, manufacturer, model, and serial; tests/test_device_tracker.py confirms the opted-in tracker joins that same device.
   diagnostics:
     status: done
     comment: custom_components/cradlepoint/diagnostics.py allowlists product name and update success; tests/test_init.py confirms addresses, credentials, serials, and raw responses are excluded.
@@ -136,13 +136,13 @@ rules:
     comment: Verify less-useful diagnostic entities have appropriate default enablement.
   entity-translations:
     status: done
-    comment: custom_components/cradlepoint/sensor.py uses translated product, firmware, WAN and opted-in GPS descriptions in custom_components/cradlepoint/strings.json and custom_components/cradlepoint/translations/en.json; tests/test_optional.py exercises their real HA entities.
+    comment: custom_components/cradlepoint/sensor.py and custom_components/cradlepoint/device_tracker.py use translated product, firmware, WAN and opted-in GPS descriptions in custom_components/cradlepoint/strings.json and custom_components/cradlepoint/translations/en.json; tests/test_optional.py and tests/test_device_tracker.py exercise their real HA entities.
   exception-translations:
     status: todo
     comment: Verify user-facing exceptions use supported translated error keys.
   icon-translations:
     status: done
-    comment: custom_components/cradlepoint/icons.json defines the translated product_name sensor icon matching custom_components/cradlepoint/sensor.py.
+    comment: custom_components/cradlepoint/icons.json defines translated sensor and gps_location tracker icons matching custom_components/cradlepoint/sensor.py and custom_components/cradlepoint/device_tracker.py.
   reconfiguration-flow:
     status: done
     comment: custom_components/cradlepoint/config_flow.py implements same-router reconfiguration; tests/test_config_flow.py verifies changed connection details and wrong-router rejection.

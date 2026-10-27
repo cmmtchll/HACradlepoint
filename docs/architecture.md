@@ -32,6 +32,10 @@
   coordinator-backed availability, bounded dynamic WAN entity discovery, totals/rates
   and opted-in location sensors. No entity makes independent HTTP requests.
 
+* **`device_tracker.py`** — An opted-in GPS location tracker on the same router
+  device, combining both validated coordinates from the independent GPS
+  coordinator. Consent, freshness expiry and failures redact the location.
+
 * **`diagnostics.py`** — Minimal, allowlisted diagnostic information, with no
   config-entry secrets or raw API payload export.
 

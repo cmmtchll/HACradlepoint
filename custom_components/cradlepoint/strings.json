@@ -65,6 +65,9 @@
     }
   },
   "entity": {
+    "device_tracker": {
+      "gps_location": {"name": "GPS location"}
+    },
     "sensor": {
       "product_name": {
         "name": "Product name"
