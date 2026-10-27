@@ -81,10 +81,13 @@ Optional firmware, WAN and opted-in GPS contracts,
 validation and freshness policy are listed in `docs/features.md`.
 
 These documents define the initial contract; they do not substitute for
-real-router verification. NCOS 6.x/7.x and IBR1700-600M remain experimental targets;
-family/model compatibility and account permissions are unverified.
-Tests use invented fixtures with no real
-credentials or identifiers.
+real-router verification. User-provided diagnostics confirm basic operation on
+an IBR1700-600M with integration 0.1.0 and Home Assistant 2026.10.4; see
+[hardware verification scope](features.md#hardware-verification).
+The NCOS version, TLS configuration and optional capabilities were not reported.
+NCOS 6.x/7.x compatibility, other models and least-privileged account permissions
+remain unverified. Tests use invented fixtures with no real credentials or
+identifiers.
 
 ## Vulnerability reporting
 

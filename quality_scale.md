@@ -23,8 +23,15 @@ tiers. File existence is not proof of runtime behavior or rule satisfaction.
 Independent gates enforce Ruff lint/format, strict mypy, >=96% integration
 coverage, 100% config-flow coverage, HACS validation, and hassfest. Home
 Assistant's Core tier validator does not award tiers to this custom repository.
-Hardware verification, human review, and full applicable criteria remain
-necessary even when automated checks pass.
+Feature-specific hardware verification, human review, and full applicable
+criteria remain necessary even when automated checks pass.
+
+User-provided diagnostics on 2026-10-27 confirm basic hardware operation on an
+IBR1700-600M with integration 0.1.0 and Home Assistant 2026.10.4: successful setup,
+product identification and a successful latest coordinator update. See
+[verification scope](docs/features.md#hardware-verification). Firmware and optional
+feature verification remain open; this evidence does not award a quality tier
+or change rule assessments.
 
 ## Implementation gates
 
@@ -64,5 +71,6 @@ finite/range checks, unknown readings, privacy allowlists and reset-safe rates.
 device, complete-coordinate publication, failures/recovery, freshness and consent;
 `tests/test_input_bounds.py` exercises bounded decoding and malformed input.
 GPS does not enter diagnostics or logs, but opted-in entity states/history are
-privacy-sensitive. NCOS 6.x/7.x and IBR1700-600M remain experimental, not certified.
+privacy-sensitive. The IBR1700-600M has basic hardware confirmation, not full
+feature certification; NCOS 6.x/7.x compatibility remains unverified.
 Existing open quality gaps are not promoted by synthetic fixtures or coverage.

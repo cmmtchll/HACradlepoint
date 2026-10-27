@@ -2,17 +2,41 @@
 
 ## Supported devices
 
-No specific router model or NCOS firmware version has been hardware-verified.
-The IBR1700-600M and NCOS 6.x/7.x are experimental targets. There is no hard-coded
-model or firmware gate and no claim that these are fully supported or that a
-particular model receives both firmware families. The version sensor reports
-the actual documented firmware components. The identity contract is local HTTPS
+The **IBR1700-600M** has been tested on real hardware with successful setup and
+a successful latest coordinator update, as detailed below. No specific NCOS
+firmware version has been verified; NCOS 6.x/7.x remain experimental targets.
+There is no hard-coded model or firmware gate and no claim of full feature
+support or that a particular model receives both firmware families. The version
+sensor reports the actual documented firmware components. The identity contract is local HTTPS
 `GET /api/status/product_info`, `success: true`, and nonempty
 `data.manufacturing.serial_num`/`data.product_name`. Only a 404 on this endpoint
 permits the legacy `/api/status/product` string fields
 `data.serial_number`/`data.product_name`. Invalid schema, redirects, TLS/auth
 failures and other statuses never trigger identity fallback.
 Synthetic fixtures are sufficient for development, not proof of hardware support.
+
+### Hardware verification
+
+On **2026-10-27**, a user confirmed the integration was running on an
+**IBR1700-600M** and supplied Home Assistant diagnostics reporting:
+
+| Item | Reported evidence |
+| --- | --- |
+| Integration version | 0.1.0 |
+| Home Assistant | Core 2026.10.4 on Home Assistant OS 18.3 |
+| Runtime | aarch64, Python 3.14.9 |
+| Router product name | `IBR1700-600M` |
+| Latest coordinator update | `last_update_success: true` |
+| Reported issues | None (`issues: []`) |
+
+This confirms basic integration operation on that physical router: successful
+setup, product identification and a successful latest coordinator update. The
+diagnostics do not include the NCOS version, optional firmware/WAN/GPS readings,
+or TLS configuration. They do not establish which identity endpoint was used,
+full feature coverage, long-term reliability, outage/credential-rotation recovery,
+or compatibility with other routers or firmware releases. Optional capability
+failures can coexist with a successful coordinator update. No raw diagnostics,
+config-entry identifiers, credentials or sensitive router data are reproduced here.
 
 ## Supported functions and updates
 
@@ -161,5 +185,6 @@ The experimental contracts use the public vendor
 `status/wan/devices/{info,status,stats}.md`,
 `status/wan/{primary_device,connection_state}.md`,
 `status/gps.md`, `status/gps/fix.md`, and `status/wwan.md`.
-These documentation-guided synthetic tests do not establish a compatibility
-matrix for either NCOS family, the latest vendor releases or IBR1700-600M hardware.
+These documentation-guided synthetic tests do not establish a firmware or
+feature compatibility matrix. The separate user-reported IBR1700-600M hardware
+confirmation above is limited to basic integration operation.
