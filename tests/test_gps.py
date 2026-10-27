@@ -9,6 +9,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
+from test_device_tracker import assert_no_position, tracker_state
 from test_init import add_entry
 from test_optional import mock_readings, readings, sensor_state
 from test_telemetry import gps_payload
@@ -59,6 +60,7 @@ async def test_scheduled_priority_gps(
     await hass.async_block_till_done()
     assert not refresh.done()
     assert sensor_state(hass, "gps_latitude") == "1.0"
+    assert tracker_state(hass).attributes["latitude"] == 1.0
     updated.clear()
     values["gps"] = gps_payload(lock=False)
     freezer.tick(UPDATE_INTERVAL.total_seconds() + 1)
@@ -68,9 +70,11 @@ async def test_scheduled_priority_gps(
     assert not refresh.done()
     assert sensor_state(hass, "gps_lock") == "False"
     assert sensor_state(hass, "gps_latitude") == "unavailable"
+    assert_no_position(hass)
     values["gps"] = gps_payload()
     await gps.async_refresh()
     assert sensor_state(hass, "gps_latitude") == "0.0"
+    assert tracker_state(hass).attributes["latitude"] == 0.0
     release.set()
     await refresh
     assert await hass.config_entries.async_unload(entry.entry_id)
@@ -145,6 +149,7 @@ async def test_real_options_revocation_survives_failed_reload(
         async_fire_time_changed(hass, dt_util.utcnow())
         await hass.async_block_till_done()
         assert sensor_state(hass, "gps_latitude") == "unavailable"
+        assert_no_position(hass)
         assert gps.current_fix is None
     assert not any(call.args == ("gps",) for call in optional_api.await_args_list)
     assert not entry.update_listeners
@@ -363,6 +368,7 @@ async def test_freshness_expiry_during_blocked_poll(
     assert gps.current_fix.latitude is None
     assert gps.data is not None
     assert gps.data.latitude is None
+    assert_no_position(hass)
     release.set()
     await refresh
     assert sensor_state(hass, "gps_latitude") == "unavailable"

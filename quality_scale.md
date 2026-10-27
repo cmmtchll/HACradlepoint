@@ -60,6 +60,8 @@ snapshots. `tests/test_optional.py` covers optional failures/authentication,
 dynamic WAN entities and GPS consent/reload; `tests/test_telemetry.py` covers
 finite/range checks, unknown readings, privacy allowlists and reset-safe rates.
 `tests/test_gps.py` exercises the independent priority GPS stream and lifecycle;
+`tests/test_device_tracker.py` covers the opted-in tracker on the existing router
+device, complete-coordinate publication, failures/recovery, freshness and consent;
 `tests/test_input_bounds.py` exercises bounded decoding and malformed input.
 GPS does not enter diagnostics or logs, but opted-in entity states/history are
 privacy-sensitive. NCOS 6.x/7.x and IBR1700-600M remain experimental, not certified.

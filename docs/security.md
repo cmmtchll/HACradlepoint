@@ -48,7 +48,8 @@ network/modem/location data, authenticated URLs or credentials.
 WAN entity IDs and the primary WAN state deliberately use reported device keys;
 they may contain modem identifiers, so sanitize registry/state exports too.
 GPS is explicit opt-in and is never requested by default. Opting in publishes
-precise coordinates as sensor states: Home Assistant dashboards, recorder history,
+precise coordinates as sensor states and device-tracker attributes for maps and
+zone-based presence: Home Assistant dashboards, recorder history,
 automations, external state consumers and backups may retain them. Disable the
 option to stop GPS requests and unload entities; separately manage existing
 history/backups and do not publicly share them. Unlocked/stale positions and raw
