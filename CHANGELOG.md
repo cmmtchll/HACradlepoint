@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0 — unreleased
+
+* Add an opted-in GPS location device tracker on the existing router device for
+  Home Assistant maps and zones, alongside the existing GPS sensors.
+* Reuse shared GPS polling, identity checks, consent and freshness deadlines;
+  redact incomplete, stale or unavailable positions without additional requests.
+* Cover tracker identity, reload/unload, failure recovery, consent revocation and
+  location privacy with Home Assistant tests.
+
 ## 0.1.0 — unreleased
 
 * Independent priority GPS polling, live consent enforcement and position
